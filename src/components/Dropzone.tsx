@@ -1,41 +1,52 @@
 'use client'
 
-import { use, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useRef, type FC } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Button } from '@/components/ui/button'
-import { pusher } from '@/lib/pusher'
+import { pusher, type Channel } from '@/lib/pusher'
+import {
+  type StartProcessingEvent,
+  type SuccessProcessingEvent,
+  Format,
+} from '@/lib/types'
 import { Loader2 } from 'lucide-react'
 
-type StartProcessingEvent = {
-  event: 'started'
-  file: string
+type Event = StartProcessingEvent | SuccessProcessingEvent
+
+type Props = {
+  format: Format
+  onFormatChange: (format: Format) => void
+  onSuccess: (jobId: string, event: SuccessProcessingEvent) => void
+  onReset: () => void
 }
 
-type FinishProcessingEvent = {
-  event: 'finished'
-  file: string
-}
-
-type Event = StartProcessingEvent | FinishProcessingEvent
-
-export const Dropzone = () => {
+export const Dropzone: FC<Props> = ({ format, onSuccess, onReset }) => {
   const [thumbnails, setThumbnails] = useState<string[]>([])
   const [files, setFiles] = useState<File[]>([])
-  const [uploading, setUploading] = useState(false)
+  const [_uploading, setUploading] = useState(false)
+  const [jobId, setJobId] = useState<string>()
   const [processing, setProcessing] = useState<Record<string, boolean>>({})
+  const channelRef = useRef<Channel>()
   const onUpload = async () => {
     setUploading(true)
     const formData = new FormData()
+    const queryParams = new URLSearchParams({ format, quality: '80' })
+    if (jobId) {
+      queryParams.append('jobId', jobId)
+    }
     files.forEach(file => {
       formData.append('image', new Blob([file]), file.name)
     })
+
     let data: any
     try {
       data = await (
-        await fetch('http://localhost:3001/api/v1/process', {
-          method: 'POST',
-          body: formData,
-        })
+        await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/process?${queryParams}`,
+          {
+            method: 'POST',
+            body: formData,
+          }
+        )
       ).json()
     } catch (error) {
       console.error(error)
@@ -44,21 +55,34 @@ export const Dropzone = () => {
     }
 
     if (!data) return
-
-    const channel = pusher.subscribe(data.job_id)
-    channel.bind('processing', (data: Event) => {
-      switch (data.event) {
-        case 'started':
-          return setProcessing(processing => ({
-            ...processing,
-            [data.file]: true,
-          }))
-        default:
-          throw new Error('Invalid event')
-      }
-    })
+    if (!jobId) {
+      setJobId(data.job_id)
+      channelRef.current = pusher.subscribe('cache-' + data.job_id)
+      channelRef.current.bind('processing', (evt: Event) => {
+        switch (evt.event) {
+          case 'started':
+            return setProcessing(processing => ({
+              ...processing,
+              [evt.fileName]: true,
+            }))
+          case 'success':
+            setProcessing(processing => ({
+              ...processing,
+              [evt.sourceFile]: false,
+            }))
+            onSuccess(data.job_id, evt)
+            break
+          default:
+            throw new Error('Invalid event')
+        }
+      })
+    }
   }
-  const onDrop = useCallback(setFiles, [])
+  const onDrop = useCallback((files: File[]) => {
+    onReset()
+    setThumbnails([])
+    setFiles(files)
+  }, [])
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
 
   useEffect(() => {
@@ -72,13 +96,24 @@ export const Dropzone = () => {
       }
       thumbnailReader.readAsDataURL(file)
     })
+    files.length && onUpload()
   }, [files])
 
+  useEffect(() => {
+    files.length && onUpload()
+  }, [format])
+
+  useEffect(() => {
+    return () => {
+      channelRef.current?.unsubscribe()
+    }
+  }, [])
+
   return (
-    <>
+    <div className='flex flex-col items-center mx-auto'>
       <div
         {...getRootProps()}
-        className='border border-slate-600 w-1/2 h-96 flex justify-center items-center rounded-lg cursor-pointer'
+        className='border border-slate-600 w-full h-96 flex justify-center items-center rounded-lg cursor-pointer mx-auto'
       >
         <input {...getInputProps()} />
         {isDragActive ? (
@@ -87,26 +122,19 @@ export const Dropzone = () => {
           <p>Drag 'n' drop some files here, or click to select files</p>
         )}
       </div>
+
       <section className='flex'>
         {thumbnails.map((th, idx) => (
-          <div key={th.slice(32)}>
-            <img src={th} className='w-20 h-20 m-4' />
+          <div key={th.slice(32)} className='relative m-4'>
+            <img src={th} className='w-20 h-20' />
             {processing[files[idx]?.name] && (
-              <span>
-                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                Processing
+              <span className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
+                <Loader2 className='h-8 w-8 animate-spin text-white' />
               </span>
             )}
           </div>
         ))}
       </section>
-      <Button
-        onClick={onUpload}
-        disabled={!files.length || uploading}
-        className='mt-10'
-      >
-        Upload
-      </Button>
-    </>
+    </div>
   )
 }
