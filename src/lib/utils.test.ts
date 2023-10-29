@@ -1,4 +1,9 @@
-import { getStringifiedConversionRate, getFormattedFileSize } from './utils'
+import {
+  getStringifiedConversionRate,
+  getFormattedFileSize,
+  removeExtension,
+  getExtension,
+} from './utils'
 
 describe('utils', () => {
   describe('getStringifiedConversionRate', () => {
@@ -74,5 +79,45 @@ describe('utils', () => {
         expect(actualFormattedSize).toEqual(expectedFormattedSize)
       }
     )
+  })
+
+  describe('removeExtension', () => {
+    it('should remove the extension from a filename', () => {
+      const filename = 'example.txt'
+      const result = removeExtension(filename)
+      expect(result).toBe('example')
+    })
+
+    it('should return the original filename if there is no extension', () => {
+      const filename = 'example'
+      const result = removeExtension(filename)
+      expect(result).toBe('example')
+    })
+
+    it('should handle filenames with multiple dots', () => {
+      const filename = 'example.part1.txt'
+      const result = removeExtension(filename)
+      expect(result).toBe('example.part1')
+    })
+  })
+
+  describe('getExtension', () => {
+    it('should return the extension from a filename', () => {
+      const filename = 'example.txt'
+      const result = getExtension(filename)
+      expect(result).toBe('txt')
+    })
+
+    it('should return an empty string if there is no extension', () => {
+      const filename = 'example'
+      const result = getExtension(filename)
+      expect(result).toBe('')
+    })
+
+    it('should handle filenames with multiple dots', () => {
+      const filename = 'example.part1.txt'
+      const result = getExtension(filename)
+      expect(result).toBe('txt')
+    })
   })
 })

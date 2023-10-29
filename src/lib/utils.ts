@@ -45,3 +45,16 @@ export const getFormattedFileSize = (bytes: number): string => {
 
   return `${bytes} B`
 }
+
+export const removeExtension = (filename: string): string =>
+  filename.replace(/\.[^/.]+$/, '')
+
+export const getExtension = (filename: string): string => {
+  const matches = filename.match(/\.([^/.]+)$/)
+
+  if (matches) {
+    return matches[1]
+  }
+
+  return ''
+}
