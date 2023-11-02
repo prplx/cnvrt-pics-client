@@ -36,7 +36,6 @@ export const Processor = () => {
   >({})
 
   const onSuccess = (jobId: string, event: SuccessProcessingEvent) => {
-    console.log('event:', event)
     setCurrentJob(currentJob => {
       if (!currentJob) {
         return {

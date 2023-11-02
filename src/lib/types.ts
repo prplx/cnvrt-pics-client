@@ -50,6 +50,7 @@ export enum Format {
   WEBP = 'webp',
   JPEG = 'jpeg',
   PNG = 'png',
+  AVIF = 'avif',
 }
 
 export interface File extends SuccessProcessingEvent {
