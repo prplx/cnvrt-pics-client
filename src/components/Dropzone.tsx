@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState, useRef, type FC } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { pusher, type Channel } from '@/lib/pusher'
 import {
   type StartProcessingEvent,
   type SuccessProcessingEvent,
@@ -12,6 +11,8 @@ import {
 } from '@/lib/types'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import useWebSocket from 'react-use-websocket'
+import { useGetAppCheckToken } from '@/hooks/useGetAppCheckToken'
 
 type Props = {
   format: Format
@@ -34,7 +35,11 @@ export const Dropzone: FC<Props> = ({
   const [_uploading, setUploading] = useState(false)
   const [jobId, setJobId] = useState<string>()
   const [processing, setProcessing] = useState<Record<string, boolean>>({})
-  const channelRef = useRef<Channel>()
+  const [socketUrl, setSocketUrl] = useState<string | null>(null)
+  const { lastJsonMessage } = useWebSocket(socketUrl)
+  const [appCheckToken, setAppCheckToken] = useState<string>()
+  const getAppCheckToken = useGetAppCheckToken()
+
   const onUpload = async () => {
     setUploading(true)
     const formData = new FormData()
@@ -50,10 +55,13 @@ export const Dropzone: FC<Props> = ({
     try {
       data = await (
         await fetch(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/process?${queryParams}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/process?${queryParams}`,
           {
             method: 'POST',
             body: formData,
+            headers: {
+              'X-Firebase-AppCheck': appCheckToken ?? '',
+            },
           }
         )
       ).json()
@@ -67,30 +75,11 @@ export const Dropzone: FC<Props> = ({
 
     if (!jobId) {
       setJobId(data.job_id)
-      channelRef.current = pusher.subscribe('cache-' + data.job_id)
-      channelRef.current.bind('processing', (evt: ProcessingEvent) => {
-        switch (evt.event) {
-          case 'started':
-            return setProcessing(processing => ({
-              ...processing,
-              [evt.fileName]: true,
-            }))
-          case 'success':
-            setProcessing(processing => ({
-              ...processing,
-              [evt.sourceFile]: false,
-            }))
-            onSuccess(data.job_id, evt)
-            break
-        }
-      })
-      channelRef.current.bind('archiving', (evt: ArchivingEvent) => {
-        switch (evt.event) {
-          case 'success':
-            onArchiveDownload(evt.path)
-            break
-        }
-      })
+      setSocketUrl(
+        `${process.env.NEXT_PUBLIC_SERVER_WS_URL}/${
+          data.job_id
+        }?appCheckToken=${appCheckToken ?? ''}`
+      )
     }
   }
   const onDrop = useCallback((files: File[]) => {
@@ -119,10 +108,41 @@ export const Dropzone: FC<Props> = ({
   }, [format])
 
   useEffect(() => {
-    return () => {
-      channelRef.current?.unsubscribe()
+    if (!lastJsonMessage || !jobId) return
+    const evt: any = lastJsonMessage
+    if (evt.operation === 'processing') {
+      switch (evt.event) {
+        case 'started':
+          return setProcessing(processing => ({
+            ...processing,
+            [evt.fileName]: true,
+          }))
+        case 'success':
+          setProcessing(processing => ({
+            ...processing,
+            [evt.sourceFile]: false,
+          }))
+          onSuccess(jobId, evt)
+          break
+      }
+    } else if (evt.operation === 'archiving') {
+      switch (evt.event) {
+        case 'success':
+          onArchiveDownload(evt.path)
+          break
+      }
+    } else if (evt.operation === 'flushing') {
+      switch (evt.event) {
+        case 'success':
+          window?.location.reload()
+          break
+      }
     }
-  }, [])
+  }, [lastJsonMessage])
+
+  useEffect(() => {
+    getAppCheckToken().then(setAppCheckToken)
+  })
 
   return (
     <div className='flex flex-col items-center mx-auto'>

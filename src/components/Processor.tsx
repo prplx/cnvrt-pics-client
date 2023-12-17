@@ -18,6 +18,7 @@ import {
 import { FormatSelector } from '@/components/FormatSelector'
 import { Slider } from '@/components/ui/slider'
 import { Button } from '@/components/ui/button'
+import { useGetAppCheckToken } from '@/hooks/useGetAppCheckToken'
 
 const buildUrl = (jobId: string, fileName: string) =>
   `${process.env.NEXT_PUBLIC_SERVER_URL}/uploads/${jobId}/${fileName}`
@@ -34,6 +35,8 @@ export const Processor = () => {
   const [fileToDimensionsMap, setFileToDimensionsMap] = useState<
     Record<File['fileId'], { width: number; height: number }>
   >({})
+  const [appCheckToken, setAppCheckToken] = useState<string>()
+  const getAppCheckToken = useGetAppCheckToken()
 
   const onSuccess = (jobId: string, event: SuccessProcessingEvent) => {
     setCurrentJob(currentJob => {
@@ -133,9 +136,12 @@ export const Processor = () => {
 
     try {
       await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/process/${currentJob.jobId}?${queryParams}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/process/${currentJob.jobId}?${queryParams}`,
         {
           method: 'POST',
+          headers: {
+            'X-Firebase-AppCheck': appCheckToken ?? '',
+          },
         }
       )
     } catch (error) {
@@ -148,9 +154,12 @@ export const Processor = () => {
 
     try {
       await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/archive/${currentJob.jobId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/archive/${currentJob.jobId}`,
         {
           method: 'POST',
+          headers: {
+            'X-Firebase-AppCheck': appCheckToken ?? '',
+          },
         }
       )
     } catch (error) {
@@ -195,6 +204,10 @@ export const Processor = () => {
       ...qualityDimensionsMap.dimensions,
     })
   }, [currentJob])
+
+  useEffect(() => {
+    getAppCheckToken().then(setAppCheckToken)
+  })
 
   const getDownloadData = (name: string) => {
     const file = currentJob?.files.find(f => f.sourceFile === name)
