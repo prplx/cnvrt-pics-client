@@ -16,9 +16,9 @@ import {
   getExtension,
 } from '@/lib/utils'
 import { FormatSelector } from '@/components/FormatSelector'
-import { Slider } from '@/components/ui/slider'
 import { Button } from '@/components/ui/button'
 import { useGetAppCheckToken } from '@/hooks/useGetAppCheckToken'
+import { Slider, type SliderValue } from '@nextui-org/react'
 
 const buildUrl = (jobId: string, fileName: string) =>
   `${process.env.NEXT_PUBLIC_SERVER_URL}/uploads/${jobId}/${fileName}`
@@ -101,7 +101,9 @@ export const Processor = () => {
     if (!currentJob || !jobFile) return
 
     if (property === 'width') {
-      jobFile['height'] = fileToDimensionsMap[file.fileId].height
+      const ratio = file.width / file.height
+      const newHeight = Math.round((value as number) / ratio)
+      jobFile['height'] = newHeight
     }
 
     if (currentJob && jobFile) {
@@ -115,12 +117,21 @@ export const Processor = () => {
     onFilePropertyChange(file, 'format', format)
   }
 
-  const onFileQualityCommit = (file: File) => (quality: number[]) => {
-    onFilePropertyChange(file, 'quality', quality[0])
+  const onFileQualityCommit = (file: File) => (quality: SliderValue) => {
+    const q = Array.isArray(quality) ? quality[0] : quality
+    setFileToQualityMap({ ...fileToQualityMap, [file.fileId]: q })
+    onFilePropertyChange(file, 'quality', q)
   }
 
-  const onFileWidthCommit = (file: File) => (width: number[]) => {
-    onFilePropertyChange(file, 'width', width[0])
+  const onFileWidthCommit = (file: File) => (width: SliderValue) => {
+    const w = Array.isArray(width) ? width[0] : width
+    const ratio = file.width / file.height
+    const newHeight = Math.round(w / ratio)
+    setFileToDimensionsMap({
+      ...fileToDimensionsMap,
+      [file.fileId]: { width: w, height: newHeight },
+    })
+    onFilePropertyChange(file, 'width', w)
   }
 
   const requestOperation = async (file: File) => {
@@ -165,18 +176,6 @@ export const Processor = () => {
     } catch (error) {
       console.error(error)
     }
-  }
-
-  const onFileQualityChange = (file: File, quality: number) =>
-    setFileToQualityMap({ ...fileToQualityMap, [file.fileId]: quality })
-
-  const onFileWidthChange = (file: File, width: number) => {
-    const ratio = file.width / file.height
-    const newHeight = Math.round(width / ratio)
-    setFileToDimensionsMap({
-      ...fileToDimensionsMap,
-      [file.fileId]: { width, height: newHeight },
-    })
   }
 
   useEffect(() => {
@@ -280,9 +279,18 @@ export const Processor = () => {
                     onChange={onFileFormatChange(file)}
                   />
                   <div className='mt-4 '>
-                    Quality
+                    {/* Quality */}
                     <div className='flex items-center'>
                       <Slider
+                        label='Quality'
+                        minValue={10}
+                        maxValue={100}
+                        step={1}
+                        className='w-[140px]'
+                        defaultValue={80}
+                        onChangeEnd={onFileQualityCommit(file)}
+                      />
+                      {/* <SliderShad
                         defaultValue={[80]}
                         min={10}
                         max={100}
@@ -292,30 +300,23 @@ export const Processor = () => {
                           onFileQualityChange(file, value[0])
                         }
                         className='w-[140px]'
-                      />
-                      <div className='ml-4'>
+                      /> */}
+                      {/* <div className='ml-4'>
                         {fileToQualityMap[file.fileId]}
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                   <div className='mt-4'>
-                    Resize
                     <div className='flex items-center'>
                       <Slider
-                        defaultValue={[file.width]}
-                        min={10}
-                        max={file.originalWidth}
+                        label='Resize'
+                        minValue={10}
+                        maxValue={file.originalWidth}
                         step={1}
-                        onValueCommit={onFileWidthCommit(file)}
-                        onValueChange={value =>
-                          onFileWidthChange(file, value[0])
-                        }
                         className='w-[140px]'
+                        defaultValue={file.width}
+                        onChangeEnd={onFileWidthCommit(file)}
                       />
-                      <div className='ml-4'>
-                        {fileToDimensionsMap[file.fileId]?.width}x
-                        {fileToDimensionsMap[file.fileId]?.height}
-                      </div>
                     </div>
                   </div>
                 </div>
