@@ -16,9 +16,24 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang='en'>
-      <body className={inter.className}>
-        <Providers>{children}</Providers>
+    <html lang='en' className='bg-black'>
+      <body className={`${inter.className} overscroll-none`}>
+        <Providers>
+          <div className='container'>
+            <h1 className='text-white z-[2] relative text-2xl font-medium mt-12 uppercase'>
+              {process.env.NEXT_PUBLIC_APP_NAME}
+            </h1>
+          </div>
+          <div className='overlay fixed right-0 bottom-0 min-w-full min-h-full z-[1] backdrop-blur-2xl'></div>
+          <video
+            src='https://d2n07m8t3xer11.cloudfront.net/Blue+Shiny+Space+Fire+Looping+Animation.m3u8'
+            className='fixed right-0 bottom-0 min-w-full min-h-full object-fill z-0'
+            loop
+            autoPlay
+            muted
+          />
+          {children}
+        </Providers>
       </body>
     </html>
   )

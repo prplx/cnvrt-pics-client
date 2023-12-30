@@ -10,9 +10,18 @@ import {
   Format,
 } from '@/lib/types'
 import { Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import useWebSocket from 'react-use-websocket'
 import { useGetAppCheckToken } from '@/hooks/useGetAppCheckToken'
+import { SlCloudDownload } from 'react-icons/sl'
+import {
+  Button,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownSection,
+  DropdownItem,
+} from '@nextui-org/react'
+import { IoMdAttach } from 'react-icons/io'
 
 type Props = {
   format: Format
@@ -145,17 +154,47 @@ export const Dropzone: FC<Props> = ({
   })
 
   return (
-    <div className='flex flex-col items-center mx-auto'>
+    <div className='flex flex-col items-center mx-auto bg-slate-800/50 text-white rounded-3xl w-3/4 p-10'>
       <div
         {...getRootProps()}
-        className='border border-slate-600 w-full h-60 flex justify-center items-center rounded-lg cursor-pointer mx-auto'
+        className='w-full h-60 flex flex-col justify-center items-center cursor-pointer mx-auto border rounded-xl border-dashed border-slate-400'
       >
         <input {...getInputProps()} />
+        <div className='text-emerald mb-2'>
+          <SlCloudDownload size={32} />
+        </div>
         {isDragActive ? (
-          <p>Drop the files here ...</p>
+          <p>Drop the images here ...</p>
         ) : (
-          <p>Drag 'n' drop some files here, or click to select files</p>
+          <p>Drag&drop images here</p>
         )}
+        <span className='text-slate-500'>or</span>
+        <Button
+          variant='flat'
+          size='sm'
+          radius='sm'
+          className='mt-2 text-white'
+          startContent={<IoMdAttach size={16} />}
+        >
+          Choose files
+        </Button>
+        <div className='mt-4'>
+          <span className='text-slate-500'>
+            Your default target format is &nbsp;
+          </span>
+          <Dropdown>
+            <DropdownTrigger>
+              <span className='border-b-1 border-dashed'>webp</span>
+            </DropdownTrigger>
+            <DropdownMenu selectionMode='single' selectedKeys={['webp']}>
+              <DropdownItem key='webp'>webp</DropdownItem>
+              <DropdownItem key='avif'>avif</DropdownItem>
+              <DropdownItem key='jpg'>jpg</DropdownItem>
+              <DropdownItem key='png'>png</DropdownItem>
+              <DropdownItem key='heic'>heic</DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+        </div>
       </div>
 
       <section className='flex'>
@@ -177,7 +216,7 @@ export const Dropzone: FC<Props> = ({
               )}
               {downloadData.url && (
                 <div className='absolute bottom-0 left-1/2 -translate-x-1/2 -translate-y-1'>
-                  <Button variant='outline'>
+                  <Button>
                     <a href={downloadData.url} download={downloadData.fileName}>
                       Download
                     </a>

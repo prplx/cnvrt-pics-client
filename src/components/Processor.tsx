@@ -230,7 +230,7 @@ export const Processor = () => {
   }
 
   return (
-    <>
+    <div className='mt-10'>
       <Dropzone
         format={format}
         onFormatChange={setFormat}
@@ -239,11 +239,11 @@ export const Processor = () => {
         getDownloadData={getDownloadData}
         onArchiveDownload={onArchiveDownload}
       />
-      {!currentJob && (
+      {/* {!currentJob && (
         <div className='mt-4'>
           <FormatSelector value={format} onChange={setFormat} />
         </div>
-      )}
+      )} */}
       {(currentJob?.files.length || 0) > 1 && (
         <Button onClick={onDownloadAll}>Download all</Button>
       )}
@@ -279,7 +279,6 @@ export const Processor = () => {
                     onChange={onFileFormatChange(file)}
                   />
                   <div className='mt-4 '>
-                    {/* Quality */}
                     <div className='flex items-center'>
                       <Slider
                         label='Quality'
@@ -290,20 +289,6 @@ export const Processor = () => {
                         defaultValue={80}
                         onChangeEnd={onFileQualityCommit(file)}
                       />
-                      {/* <SliderShad
-                        defaultValue={[80]}
-                        min={10}
-                        max={100}
-                        step={1}
-                        onValueCommit={onFileQualityCommit(file)}
-                        onValueChange={value =>
-                          onFileQualityChange(file, value[0])
-                        }
-                        className='w-[140px]'
-                      /> */}
-                      {/* <div className='ml-4'>
-                        {fileToQualityMap[file.fileId]}
-                      </div> */}
                     </div>
                   </div>
                   <div className='mt-4'>
@@ -324,6 +309,6 @@ export const Processor = () => {
             </div>
           </div>
         ))}
-    </>
+    </div>
   )
 }
