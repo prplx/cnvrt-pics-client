@@ -17,8 +17,8 @@ import {
 } from '@/lib/utils'
 import { FormatSelector } from '@/components/FormatSelector'
 import { Button } from '@/components/ui/button'
-import { useGetAppCheckToken } from '@/hooks/useGetAppCheckToken'
 import { Slider, type SliderValue } from '@nextui-org/react'
+import { useApiRequest } from '@/hooks/useApiRequest'
 
 const buildUrl = (jobId: string, fileName: string) =>
   `${process.env.NEXT_PUBLIC_SERVER_URL}/uploads/${jobId}/${fileName}`
@@ -35,8 +35,7 @@ export const Processor = () => {
   const [fileToDimensionsMap, setFileToDimensionsMap] = useState<
     Record<File['fileId'], { width: number; height: number }>
   >({})
-  const [appCheckToken, setAppCheckToken] = useState<string>()
-  const getAppCheckToken = useGetAppCheckToken()
+  const { processFile, archiveJob } = useApiRequest()
 
   const onSuccess = (jobId: string, event: SuccessProcessingEvent) => {
     setCurrentJob(currentJob => {
@@ -146,15 +145,7 @@ export const Processor = () => {
     })
 
     try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/process/${currentJob.jobId}?${queryParams}`,
-        {
-          method: 'POST',
-          headers: {
-            'X-Firebase-AppCheck': appCheckToken ?? '',
-          },
-        }
-      )
+      await processFile(currentJob.jobId, queryParams)
     } catch (error) {
       console.error(error)
     }
@@ -164,15 +155,7 @@ export const Processor = () => {
     if (!currentJob) return
 
     try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/archive/${currentJob.jobId}`,
-        {
-          method: 'POST',
-          headers: {
-            'X-Firebase-AppCheck': appCheckToken ?? '',
-          },
-        }
-      )
+      await archiveJob(currentJob.jobId)
     } catch (error) {
       console.error(error)
     }
@@ -203,10 +186,6 @@ export const Processor = () => {
       ...qualityDimensionsMap.dimensions,
     })
   }, [currentJob])
-
-  useEffect(() => {
-    getAppCheckToken().then(setAppCheckToken)
-  })
 
   const getDownloadData = (name: string) => {
     const file = currentJob?.files.find(f => f.sourceFile === name)

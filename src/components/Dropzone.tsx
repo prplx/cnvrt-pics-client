@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState, useRef, type FC } from 'react'
+import { useCallback, useEffect, useState, useRef, type FC, use } from 'react'
 import { useDropzone } from 'react-dropzone'
 import {
   type StartProcessingEvent,
@@ -11,17 +11,16 @@ import {
 } from '@/lib/types'
 import { Loader2 } from 'lucide-react'
 import useWebSocket from 'react-use-websocket'
-import { useGetAppCheckToken } from '@/hooks/useGetAppCheckToken'
 import { SlCloudDownload } from 'react-icons/sl'
 import {
   Button,
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
-  DropdownSection,
   DropdownItem,
 } from '@nextui-org/react'
 import { IoMdAttach } from 'react-icons/io'
+import { useApiRequest } from '@/hooks/useApiRequest'
 
 type Props = {
   format: Format
@@ -34,6 +33,7 @@ type Props = {
 
 export const Dropzone: FC<Props> = ({
   format,
+  onFormatChange,
   onSuccess,
   onReset,
   getDownloadData,
@@ -46,13 +46,15 @@ export const Dropzone: FC<Props> = ({
   const [processing, setProcessing] = useState<Record<string, boolean>>({})
   const [socketUrl, setSocketUrl] = useState<string | null>(null)
   const { lastJsonMessage } = useWebSocket(socketUrl)
-  const [appCheckToken, setAppCheckToken] = useState<string>()
-  const getAppCheckToken = useGetAppCheckToken()
+  const { processJob, getWebsocketUrl } = useApiRequest()
 
   const onUpload = async () => {
     setUploading(true)
     const formData = new FormData()
-    const queryParams = new URLSearchParams({ format, quality: '80' })
+    const queryParams = new URLSearchParams({
+      format,
+      quality: '80',
+    })
     if (jobId) {
       queryParams.append('jobId', jobId)
     }
@@ -62,18 +64,7 @@ export const Dropzone: FC<Props> = ({
 
     let data: any
     try {
-      data = await (
-        await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/process?${queryParams}`,
-          {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'X-Firebase-AppCheck': appCheckToken ?? '',
-            },
-          }
-        )
-      ).json()
+      data = await processJob(formData, queryParams)
     } catch (error) {
       console.error(error)
     } finally {
@@ -84,11 +75,7 @@ export const Dropzone: FC<Props> = ({
 
     if (!jobId) {
       setJobId(data.job_id)
-      setSocketUrl(
-        `${process.env.NEXT_PUBLIC_SERVER_WS_URL}/${
-          data.job_id
-        }?appCheckToken=${appCheckToken ?? ''}`
-      )
+      setSocketUrl(getWebsocketUrl(data.job_id))
     }
   }
   const onDrop = useCallback((files: File[]) => {
@@ -97,6 +84,7 @@ export const Dropzone: FC<Props> = ({
     setFiles(files)
   }, [])
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
+  const originalDropZoneOnClick = getRootProps().onClick
 
   useEffect(() => {
     files.forEach(file => {
@@ -114,7 +102,7 @@ export const Dropzone: FC<Props> = ({
 
   useEffect(() => {
     files.length && onUpload()
-  }, [format])
+  }, [])
 
   useEffect(() => {
     if (!lastJsonMessage || !jobId) return
@@ -149,14 +137,11 @@ export const Dropzone: FC<Props> = ({
     }
   }, [lastJsonMessage])
 
-  useEffect(() => {
-    getAppCheckToken().then(setAppCheckToken)
-  })
-
   return (
     <div className='flex flex-col items-center mx-auto bg-slate-800/50 text-white rounded-3xl w-3/4 p-10'>
       <div
         {...getRootProps()}
+        onClick={undefined}
         className='w-full h-60 flex flex-col justify-center items-center cursor-pointer mx-auto border rounded-xl border-dashed border-slate-400'
       >
         <input {...getInputProps()} />
@@ -175,6 +160,7 @@ export const Dropzone: FC<Props> = ({
           radius='sm'
           className='mt-2 text-white'
           startContent={<IoMdAttach size={16} />}
+          onPress={e => originalDropZoneOnClick?.(e as never)}
         >
           Choose files
         </Button>
@@ -184,14 +170,16 @@ export const Dropzone: FC<Props> = ({
           </span>
           <Dropdown>
             <DropdownTrigger>
-              <span className='border-b-1 border-dashed'>webp</span>
+              <span className='border-b-1 border-dashed'>{format}</span>
             </DropdownTrigger>
-            <DropdownMenu selectionMode='single' selectedKeys={['webp']}>
-              <DropdownItem key='webp'>webp</DropdownItem>
-              <DropdownItem key='avif'>avif</DropdownItem>
-              <DropdownItem key='jpg'>jpg</DropdownItem>
-              <DropdownItem key='png'>png</DropdownItem>
-              <DropdownItem key='heic'>heic</DropdownItem>
+            <DropdownMenu
+              selectionMode='single'
+              selectedKeys={[format]}
+              onAction={key => onFormatChange(key as Format)}
+            >
+              {Object.values(Format).map(format => (
+                <DropdownItem key={format}>{format}</DropdownItem>
+              ))}
             </DropdownMenu>
           </Dropdown>
         </div>

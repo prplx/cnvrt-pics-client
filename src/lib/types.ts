@@ -51,6 +51,7 @@ export enum Format {
   JPEG = 'jpeg',
   PNG = 'png',
   AVIF = 'avif',
+  HEIC = 'heic',
 }
 
 export interface File extends SuccessProcessingEvent {
