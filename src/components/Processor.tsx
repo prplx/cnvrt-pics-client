@@ -19,16 +19,17 @@ import { FormatSelector } from '@/components/FormatSelector'
 import { Button } from '@/components/ui/button'
 import { Slider, type SliderValue } from '@nextui-org/react'
 import { useApiRequest } from '@/hooks/useApiRequest'
+import { useStore } from '@/store'
 
 const buildUrl = (jobId: string, fileName: string) =>
   `${process.env.NEXT_PUBLIC_SERVER_URL}/uploads/${jobId}/${fileName}`
 
 export const Processor = () => {
+  const format = useStore(state => state.format)
   const [currentJob, setCurrentJob] = useState<{
     jobId: JobId
     files: File[]
   }>()
-  const [format, setFormat] = useState<Format>(Format.WEBP)
   const [fileToQualityMap, setFileToQualityMap] = useState<
     Record<File['fileId'], number>
   >({})
@@ -211,18 +212,11 @@ export const Processor = () => {
   return (
     <div className='mt-10'>
       <Dropzone
-        format={format}
-        onFormatChange={setFormat}
         onSuccess={onSuccess}
         onReset={onReset}
         getDownloadData={getDownloadData}
         onArchiveDownload={onArchiveDownload}
       />
-      {/* {!currentJob && (
-        <div className='mt-4'>
-          <FormatSelector value={format} onChange={setFormat} />
-        </div>
-      )} */}
       {(currentJob?.files.length || 0) > 1 && (
         <Button onClick={onDownloadAll}>Download all</Button>
       )}

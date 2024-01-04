@@ -21,10 +21,9 @@ import {
 } from '@nextui-org/react'
 import { IoMdAttach } from 'react-icons/io'
 import { useApiRequest } from '@/hooks/useApiRequest'
+import { useStore } from '@/store'
 
 type Props = {
-  format: Format
-  onFormatChange: (format: Format) => void
   onSuccess: (jobId: string, event: SuccessProcessingEvent) => void
   onReset: () => void
   getDownloadData: (fileName: string) => { url: string; fileName: string }
@@ -32,8 +31,6 @@ type Props = {
 }
 
 export const Dropzone: FC<Props> = ({
-  format,
-  onFormatChange,
   onSuccess,
   onReset,
   getDownloadData,
@@ -42,11 +39,14 @@ export const Dropzone: FC<Props> = ({
   const [thumbnails, setThumbnails] = useState<string[]>([])
   const [files, setFiles] = useState<File[]>([])
   const [_uploading, setUploading] = useState(false)
-  const [jobId, setJobId] = useState<string>()
   const [processing, setProcessing] = useState<Record<string, boolean>>({})
   const [socketUrl, setSocketUrl] = useState<string | null>(null)
   const { lastJsonMessage } = useWebSocket(socketUrl)
   const { processJob, getWebsocketUrl } = useApiRequest()
+  const format = useStore(state => state.format)
+  const setFormat = useStore(state => state.setFormat)
+  const jobId = useStore(state => state.currentJob.id)
+  const setJobId = useStore(state => state.setCurrentJobId)
 
   const onUpload = async () => {
     setUploading(true)
@@ -170,15 +170,17 @@ export const Dropzone: FC<Props> = ({
           </span>
           <Dropdown>
             <DropdownTrigger>
-              <span className='border-b-1 border-dashed'>{format}</span>
+              <span className='border-b-1 border-dashed'>
+                {format.toUpperCase()}
+              </span>
             </DropdownTrigger>
             <DropdownMenu
               selectionMode='single'
               selectedKeys={[format]}
-              onAction={key => onFormatChange(key as Format)}
+              onAction={key => setFormat(key as Format)}
             >
               {Object.values(Format).map(format => (
-                <DropdownItem key={format}>{format}</DropdownItem>
+                <DropdownItem key={format}>{format.toUpperCase()}</DropdownItem>
               ))}
             </DropdownMenu>
           </Dropdown>
