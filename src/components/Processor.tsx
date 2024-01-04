@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button'
 import { Slider, type SliderValue } from '@nextui-org/react'
 import { useApiRequest } from '@/hooks/useApiRequest'
 import { useStore } from '@/store'
+import { ProcessorModal } from '@/components/ProcessorModal'
 
 const buildUrl = (jobId: string, fileName: string) =>
   `${process.env.NEXT_PUBLIC_SERVER_URL}/uploads/${jobId}/${fileName}`
@@ -217,6 +218,7 @@ export const Processor = () => {
         getDownloadData={getDownloadData}
         onArchiveDownload={onArchiveDownload}
       />
+      <ProcessorModal />
       {(currentJob?.files.length || 0) > 1 && (
         <Button onClick={onDownloadAll}>Download all</Button>
       )}

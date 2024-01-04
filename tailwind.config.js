@@ -27,5 +27,9 @@ module.exports = {
     },
   },
   darkMode: 'class',
-  plugins: [require('tailwindcss-animate'), nextui()],
+  plugins: [
+    nextui({
+      defaultTheme: 'dark',
+    }),
+  ],
 }

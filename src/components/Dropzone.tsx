@@ -37,7 +37,6 @@ export const Dropzone: FC<Props> = ({
   onArchiveDownload,
 }) => {
   const [thumbnails, setThumbnails] = useState<string[]>([])
-  const [files, setFiles] = useState<File[]>([])
   const [_uploading, setUploading] = useState(false)
   const [processing, setProcessing] = useState<Record<string, boolean>>({})
   const [socketUrl, setSocketUrl] = useState<string | null>(null)
@@ -47,6 +46,8 @@ export const Dropzone: FC<Props> = ({
   const setFormat = useStore(state => state.setFormat)
   const jobId = useStore(state => state.currentJob.id)
   const setJobId = useStore(state => state.setCurrentJobId)
+  const setUploadedFiles = useStore(state => state.setUploadedFiles)
+  const uploadedFiles = useStore(state => state.uploadedFiles)
 
   const onUpload = async () => {
     setUploading(true)
@@ -58,7 +59,7 @@ export const Dropzone: FC<Props> = ({
     if (jobId) {
       queryParams.append('jobId', jobId)
     }
-    files.forEach(file => {
+    uploadedFiles.forEach(file => {
       formData.append('image', new Blob([file]), file.name)
     })
 
@@ -80,14 +81,13 @@ export const Dropzone: FC<Props> = ({
   }
   const onDrop = useCallback((files: File[]) => {
     onReset()
-    setThumbnails([])
-    setFiles(files)
+    setUploadedFiles(files)
   }, [])
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
   const originalDropZoneOnClick = getRootProps().onClick
 
   useEffect(() => {
-    files.forEach(file => {
+    uploadedFiles.forEach(file => {
       const thumbnailReader = new FileReader()
       thumbnailReader.onabort = () => console.log('file reading was aborted')
       thumbnailReader.onerror = () => console.log('file reading has failed')
@@ -97,12 +97,11 @@ export const Dropzone: FC<Props> = ({
       }
       thumbnailReader.readAsDataURL(file)
     })
-    files.length && onUpload()
-  }, [files])
+  }, [uploadedFiles])
 
   useEffect(() => {
-    files.length && onUpload()
-  }, [])
+    uploadedFiles.length && onUpload()
+  }, [uploadedFiles])
 
   useEffect(() => {
     if (!lastJsonMessage || !jobId) return
@@ -189,7 +188,7 @@ export const Dropzone: FC<Props> = ({
 
       <section className='flex'>
         {thumbnails.map((th, idx) => {
-          const downloadData = getDownloadData(files[idx].name)
+          const downloadData = getDownloadData(uploadedFiles[idx].name)
           return (
             <div
               key={th.slice(32, 64)}
@@ -199,7 +198,7 @@ export const Dropzone: FC<Props> = ({
                 src={th}
                 className='absolute w-100 h-100 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2'
               />
-              {processing[files[idx]?.name] && (
+              {processing[uploadedFiles[idx]?.name] && (
                 <span className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
                   <Loader2 className='h-8 w-8 animate-spin text-white' />
                 </span>
