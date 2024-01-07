@@ -1,18 +1,21 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import { type JobId, Format } from '@/lib/types'
+import { type JobId, Format, SuccessProcessingEvent } from '@/lib/types'
 
 interface State {
   format: Format
   currentJob: {
     id: JobId | null
-    files: File[]
+    files: SuccessProcessingEvent[]
   }
   uploadedFiles: File[]
+  lastProcessingEvent: SuccessProcessingEvent | null
   setCurrentJobId: (id: JobId) => void
+  setCurrentJobFile: (id: JobId, evt: SuccessProcessingEvent) => void
   setFormat: (f: Format) => void
   setUploadedFiles: (files: File[]) => void
+  setLastProcessingEvent: (evt: SuccessProcessingEvent) => void
   reset: () => void
 }
 
@@ -28,15 +31,31 @@ const initialState: ExcludeFunctions<State> = {
     files: [],
   },
   uploadedFiles: [],
+  lastProcessingEvent: null,
 }
 
 export const useStore = create<State>()(
   devtools(
-    immer(set => ({
+    immer((set, get) => ({
       ...initialState,
       setCurrentJobId: id =>
         set(state => {
           state.currentJob.id = id
+        }),
+      setCurrentJobFile: (jobId, event) =>
+        set(state => {
+          const currentJob = get().currentJob
+          if (currentJob.id !== jobId) {
+            return
+          }
+          const uploadedFiles = get().uploadedFiles
+          const uploadedFileIdx = uploadedFiles.findIndex(
+            f => f.name === event.sourceFile
+          )
+          state.lastProcessingEvent = event
+          if (uploadedFileIdx !== -1) {
+            state.currentJob.files[uploadedFileIdx] = event
+          }
         }),
       setFormat: format =>
         set(state => {
@@ -45,6 +64,10 @@ export const useStore = create<State>()(
       setUploadedFiles: files =>
         set(state => {
           state.uploadedFiles = files
+        }),
+      setLastProcessingEvent: evt =>
+        set(state => {
+          state.lastProcessingEvent = evt
         }),
       reset: () => set(() => initialState),
     }))

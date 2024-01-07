@@ -1,17 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useState, useRef, type FC, use } from 'react'
+import { useCallback, useEffect, useState, type FC } from 'react'
 import { useDropzone } from 'react-dropzone'
-import {
-  type StartProcessingEvent,
-  type SuccessProcessingEvent,
-  type ProcessingEvent,
-  type ArchivingEvent,
-  Format,
-} from '@/lib/types'
-import { Loader2 } from 'lucide-react'
+import { type SuccessProcessingEvent, Format } from '@/lib/types'
 import useWebSocket from 'react-use-websocket'
-import { SlCloudDownload } from 'react-icons/sl'
+import { DownloadCloud, Paperclip } from 'lucide-react'
 import {
   Button,
   Dropdown,
@@ -19,26 +12,15 @@ import {
   DropdownMenu,
   DropdownItem,
 } from '@nextui-org/react'
-import { IoMdAttach } from 'react-icons/io'
 import { useApiRequest } from '@/hooks/useApiRequest'
 import { useStore } from '@/store'
 
 type Props = {
   onSuccess: (jobId: string, event: SuccessProcessingEvent) => void
-  onReset: () => void
-  getDownloadData: (fileName: string) => { url: string; fileName: string }
   onArchiveDownload: (filePath: string) => void
 }
 
-export const Dropzone: FC<Props> = ({
-  onSuccess,
-  onReset,
-  getDownloadData,
-  onArchiveDownload,
-}) => {
-  const [thumbnails, setThumbnails] = useState<string[]>([])
-  const [_uploading, setUploading] = useState(false)
-  const [processing, setProcessing] = useState<Record<string, boolean>>({})
+export const Dropzone: FC<Props> = ({ onSuccess, onArchiveDownload }) => {
   const [socketUrl, setSocketUrl] = useState<string | null>(null)
   const { lastJsonMessage } = useWebSocket(socketUrl)
   const { processJob, getWebsocketUrl } = useApiRequest()
@@ -50,7 +32,6 @@ export const Dropzone: FC<Props> = ({
   const uploadedFiles = useStore(state => state.uploadedFiles)
 
   const onUpload = async () => {
-    setUploading(true)
     const formData = new FormData()
     const queryParams = new URLSearchParams({
       format,
@@ -68,8 +49,6 @@ export const Dropzone: FC<Props> = ({
       data = await processJob(formData, queryParams)
     } catch (error) {
       console.error(error)
-    } finally {
-      setUploading(false)
     }
 
     if (!data) return
@@ -80,24 +59,10 @@ export const Dropzone: FC<Props> = ({
     }
   }
   const onDrop = useCallback((files: File[]) => {
-    onReset()
     setUploadedFiles(files)
   }, [])
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
   const originalDropZoneOnClick = getRootProps().onClick
-
-  useEffect(() => {
-    uploadedFiles.forEach(file => {
-      const thumbnailReader = new FileReader()
-      thumbnailReader.onabort = () => console.log('file reading was aborted')
-      thumbnailReader.onerror = () => console.log('file reading has failed')
-      thumbnailReader.onload = () => {
-        const binaryStr = thumbnailReader.result as string
-        setThumbnails(th => [...th, binaryStr])
-      }
-      thumbnailReader.readAsDataURL(file)
-    })
-  }, [uploadedFiles])
 
   useEffect(() => {
     uploadedFiles.length && onUpload()
@@ -108,16 +73,7 @@ export const Dropzone: FC<Props> = ({
     const evt: any = lastJsonMessage
     if (evt.operation === 'processing') {
       switch (evt.event) {
-        case 'started':
-          return setProcessing(processing => ({
-            ...processing,
-            [evt.fileName]: true,
-          }))
         case 'success':
-          setProcessing(processing => ({
-            ...processing,
-            [evt.sourceFile]: false,
-          }))
           onSuccess(jobId, evt)
           break
       }
@@ -145,7 +101,7 @@ export const Dropzone: FC<Props> = ({
       >
         <input {...getInputProps()} />
         <div className='text-emerald mb-2'>
-          <SlCloudDownload size={32} />
+          <DownloadCloud size={32} />
         </div>
         {isDragActive ? (
           <p>Drop the images here ...</p>
@@ -158,7 +114,7 @@ export const Dropzone: FC<Props> = ({
           size='sm'
           radius='sm'
           className='mt-2 text-white'
-          startContent={<IoMdAttach size={16} />}
+          startContent={<Paperclip size={16} />}
           onPress={e => originalDropZoneOnClick?.(e as never)}
         >
           Choose files
@@ -185,37 +141,6 @@ export const Dropzone: FC<Props> = ({
           </Dropdown>
         </div>
       </div>
-
-      <section className='flex'>
-        {thumbnails.map((th, idx) => {
-          const downloadData = getDownloadData(uploadedFiles[idx].name)
-          return (
-            <div
-              key={th.slice(32, 64)}
-              className='relative m-4 w-32 h-32 overflow-hidden rounded-md'
-            >
-              <img
-                src={th}
-                className='absolute w-100 h-100 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2'
-              />
-              {processing[uploadedFiles[idx]?.name] && (
-                <span className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
-                  <Loader2 className='h-8 w-8 animate-spin text-white' />
-                </span>
-              )}
-              {downloadData.url && (
-                <div className='absolute bottom-0 left-1/2 -translate-x-1/2 -translate-y-1'>
-                  <Button>
-                    <a href={downloadData.url} download={downloadData.fileName}>
-                      Download
-                    </a>
-                  </Button>
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </section>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { useStore } from '@/store'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -57,4 +58,20 @@ export const getExtension = (filename: string): string => {
   }
 
   return ''
+}
+
+export const buildDownloadUrl = (jobId: string, fileName: string) =>
+  `${process.env.NEXT_PUBLIC_SERVER_URL}/uploads/${jobId}/${fileName}`
+
+export const getDownloadData = (name: string) => {
+  const currentJob = useStore.getState().currentJob
+  const file = currentJob.files.find(f => f?.sourceFile === name)
+  let fileName = ''
+  let url = ''
+  if (file && currentJob.id) {
+    const extension = getExtension(file.targetFile)
+    url = buildDownloadUrl(currentJob.id, file.targetFile)
+    fileName = removeExtension(file.sourceFile) + '.' + extension
+  }
+  return { fileName, url }
 }

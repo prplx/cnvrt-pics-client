@@ -12,8 +12,7 @@ import {
 import {
   getStringifiedConversionRate,
   getFormattedFileSize,
-  removeExtension,
-  getExtension,
+  buildDownloadUrl,
 } from '@/lib/utils'
 import { FormatSelector } from '@/components/FormatSelector'
 import { Button } from '@/components/ui/button'
@@ -22,11 +21,7 @@ import { useApiRequest } from '@/hooks/useApiRequest'
 import { useStore } from '@/store'
 import { ProcessorModal } from '@/components/ProcessorModal'
 
-const buildUrl = (jobId: string, fileName: string) =>
-  `${process.env.NEXT_PUBLIC_SERVER_URL}/uploads/${jobId}/${fileName}`
-
 export const Processor = () => {
-  const format = useStore(state => state.format)
   const [currentJob, setCurrentJob] = useState<{
     jobId: JobId
     files: File[]
@@ -38,56 +33,10 @@ export const Processor = () => {
     Record<File['fileId'], { width: number; height: number }>
   >({})
   const { processFile, archiveJob } = useApiRequest()
+  const setCurrentJobFiles = useStore(state => state.setCurrentJobFile)
 
   const onSuccess = (jobId: string, event: SuccessProcessingEvent) => {
-    setCurrentJob(currentJob => {
-      if (!currentJob) {
-        return {
-          jobId,
-          files: [
-            {
-              ...event,
-              format,
-              quality: 80,
-              originalWidth: event.width,
-              originalHeight: event.height,
-            },
-          ],
-        }
-      } else {
-        const jobFileIdx = currentJob.files.findIndex(
-          f => f.fileId === event.fileId
-        )
-        if (jobFileIdx !== -1) {
-          currentJob.files[jobFileIdx] = {
-            ...currentJob.files[jobFileIdx],
-            ...event,
-          }
-          return {
-            ...currentJob,
-            files: [...currentJob.files],
-          }
-        } else {
-          return {
-            ...currentJob,
-            files: [
-              ...currentJob.files,
-              {
-                ...event,
-                format,
-                quality: 80,
-                originalWidth: event.width,
-                originalHeight: event.height,
-              },
-            ],
-          }
-        }
-      }
-    })
-  }
-
-  const onReset = () => {
-    setCurrentJob(undefined)
+    setCurrentJobFiles(jobId, event)
   }
 
   const onFilePropertyChange = <
@@ -189,18 +138,6 @@ export const Processor = () => {
     })
   }, [currentJob])
 
-  const getDownloadData = (name: string) => {
-    const file = currentJob?.files.find(f => f.sourceFile === name)
-    let fileName = ''
-    let url = ''
-    if (file && currentJob?.jobId) {
-      const extension = getExtension(file.targetFile)
-      url = buildUrl(currentJob.jobId, file.targetFile)
-      fileName = removeExtension(file.sourceFile) + '.' + extension
-    }
-    return { fileName, url }
-  }
-
   const onArchiveDownload = async (filePath: string) => {
     const a = document.createElement('a')
     a.href = `${process.env.NEXT_PUBLIC_SERVER_URL}/${filePath}`
@@ -212,12 +149,7 @@ export const Processor = () => {
 
   return (
     <div className='mt-10'>
-      <Dropzone
-        onSuccess={onSuccess}
-        onReset={onReset}
-        getDownloadData={getDownloadData}
-        onArchiveDownload={onArchiveDownload}
-      />
+      <Dropzone onSuccess={onSuccess} onArchiveDownload={onArchiveDownload} />
       <ProcessorModal />
       {(currentJob?.files.length || 0) > 1 && (
         <Button onClick={onDownloadAll}>Download all</Button>
@@ -242,8 +174,14 @@ export const Processor = () => {
             <div className='flex'>
               <div className='w-5/6'>
                 <Comparator
-                  sourceUrl={buildUrl(currentJob.jobId, file.sourceFile)}
-                  targetUrl={buildUrl(currentJob.jobId, file.targetFile)}
+                  sourceUrl={buildDownloadUrl(
+                    currentJob.jobId,
+                    file.sourceFile
+                  )}
+                  targetUrl={buildDownloadUrl(
+                    currentJob.jobId,
+                    file.targetFile
+                  )}
                 />
               </div>
               <div className='w-1/6'>
