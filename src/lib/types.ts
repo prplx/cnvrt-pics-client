@@ -15,6 +15,8 @@ export interface SuccessProcessingEvent {
   targetFileSize: string
   width: number
   height: number
+  format: Format
+  quality: number
 }
 
 export type ErrorProcessingEvent = {
@@ -55,8 +57,11 @@ export enum Format {
 }
 
 export interface File extends SuccessProcessingEvent {
-  format: Format
-  quality: number
   originalWidth: number
   originalHeight: number
+}
+
+export type DowloadData = {
+  fileName: string
+  url: string
 }
