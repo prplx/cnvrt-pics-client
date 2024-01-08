@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import { Dropzone } from '@/components/Dropzone'
 import { Comparator } from '@/components/Comparator'
 import {
   type JobId,
   type SuccessProcessingEvent,
   type File,
+  type Event,
   Format,
 } from '@/lib/types'
 import {
@@ -20,6 +21,7 @@ import { Slider, type SliderValue } from '@nextui-org/react'
 import { useApiRequest } from '@/hooks/useApiRequest'
 import { useStore } from '@/store'
 import { ProcessorModal } from '@/components/ProcessorModal'
+import useWebSocket from 'react-use-websocket'
 
 export const Processor = () => {
   const [currentJob, setCurrentJob] = useState<{
@@ -32,12 +34,16 @@ export const Processor = () => {
   const [fileToDimensionsMap, setFileToDimensionsMap] = useState<
     Record<File['fileId'], { width: number; height: number }>
   >({})
-  const { processFile, archiveJob } = useApiRequest()
+  const { processFile, archiveJob, getWebsocketUrl } = useApiRequest()
   const setCurrentJobFiles = useStore(state => state.setCurrentJobFile)
+  const jobId = useStore(state => state.currentJob.id)
 
   const onSuccess = (jobId: string, event: SuccessProcessingEvent) => {
     setCurrentJobFiles(jobId, event)
   }
+  const [socketUrl, setSocketUrl] = useState<string | null>(null)
+  const { lastJsonMessage } = useWebSocket<Event>(socketUrl)
+  const [isDownloadingAll, setIsDownloadingAll] = useState(false)
 
   const onFilePropertyChange = <
     P extends keyof Pick<File, 'format' | 'quality' | 'width'>,
@@ -103,11 +109,14 @@ export const Processor = () => {
   }
 
   const onDownloadAll = async () => {
-    if (!currentJob) return
+    if (!jobId) return
+
+    setIsDownloadingAll(true)
 
     try {
-      await archiveJob(currentJob.jobId)
+      await archiveJob(jobId)
     } catch (error) {
+      // TODO: handle error
       console.error(error)
     }
   }
@@ -145,12 +154,46 @@ export const Processor = () => {
       a.parentNode?.removeChild(a)
     })
     a.click()
+    setIsDownloadingAll(false)
   }
+
+  useEffect(() => {
+    if (!lastJsonMessage || !jobId) return
+    const evt: Event = lastJsonMessage
+
+    switch (evt.operation) {
+      case 'processing':
+        if (evt.event === 'success') {
+          onSuccess(jobId, evt)
+        }
+        break
+      // TODO: handle error
+      case 'archiving':
+        if (evt.event === 'success') {
+          onArchiveDownload(evt.path)
+        }
+        break
+      // TODO: handle error
+      case 'flushing':
+        if (evt.event === 'success') {
+          window?.location.reload()
+        }
+        break
+    }
+  }, [lastJsonMessage])
+
+  useEffect(() => {
+    if (!jobId || socketUrl) return
+    setSocketUrl(getWebsocketUrl(jobId))
+  }, [jobId])
 
   return (
     <div className='mt-10'>
-      <Dropzone onSuccess={onSuccess} onArchiveDownload={onArchiveDownload} />
-      <ProcessorModal />
+      <Dropzone />
+      <ProcessorModal
+        isDownloadingAll={isDownloadingAll}
+        onDownloadAll={onDownloadAll}
+      />
       {(currentJob?.files.length || 0) > 1 && (
         <Button onClick={onDownloadAll}>Download all</Button>
       )}

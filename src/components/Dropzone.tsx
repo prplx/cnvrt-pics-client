@@ -1,9 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useState, type FC } from 'react'
+import { useCallback, useEffect, type FC } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { type SuccessProcessingEvent, Format } from '@/lib/types'
-import useWebSocket from 'react-use-websocket'
+import { Format } from '@/lib/types'
 import { DownloadCloud, Paperclip } from 'lucide-react'
 import {
   Button,
@@ -15,15 +14,10 @@ import {
 import { useApiRequest } from '@/hooks/useApiRequest'
 import { useStore } from '@/store'
 
-type Props = {
-  onSuccess: (jobId: string, event: SuccessProcessingEvent) => void
-  onArchiveDownload: (filePath: string) => void
-}
+type Props = {}
 
-export const Dropzone: FC<Props> = ({ onSuccess, onArchiveDownload }) => {
-  const [socketUrl, setSocketUrl] = useState<string | null>(null)
-  const { lastJsonMessage } = useWebSocket(socketUrl)
-  const { processJob, getWebsocketUrl } = useApiRequest()
+export const Dropzone: FC<Props> = () => {
+  const { processJob } = useApiRequest()
   const format = useStore(state => state.format)
   const setFormat = useStore(state => state.setFormat)
   const jobId = useStore(state => state.currentJob.id)
@@ -48,6 +42,7 @@ export const Dropzone: FC<Props> = ({ onSuccess, onArchiveDownload }) => {
     try {
       data = await processJob(formData, queryParams)
     } catch (error) {
+      // TODO: handle error
       console.error(error)
     }
 
@@ -55,7 +50,6 @@ export const Dropzone: FC<Props> = ({ onSuccess, onArchiveDownload }) => {
 
     if (!jobId) {
       setJobId(data.job_id)
-      setSocketUrl(getWebsocketUrl(data.job_id))
     }
   }
   const onDrop = useCallback((files: File[]) => {
@@ -67,30 +61,6 @@ export const Dropzone: FC<Props> = ({ onSuccess, onArchiveDownload }) => {
   useEffect(() => {
     uploadedFiles.length && onUpload()
   }, [uploadedFiles])
-
-  useEffect(() => {
-    if (!lastJsonMessage || !jobId) return
-    const evt: any = lastJsonMessage
-    if (evt.operation === 'processing') {
-      switch (evt.event) {
-        case 'success':
-          onSuccess(jobId, evt)
-          break
-      }
-    } else if (evt.operation === 'archiving') {
-      switch (evt.event) {
-        case 'success':
-          onArchiveDownload(evt.path)
-          break
-      }
-    } else if (evt.operation === 'flushing') {
-      switch (evt.event) {
-        case 'success':
-          window?.location.reload()
-          break
-      }
-    }
-  }, [lastJsonMessage])
 
   return (
     <div className='flex flex-col items-center mx-auto bg-slate-800/50 text-white rounded-3xl w-3/4 p-10'>

@@ -4,6 +4,7 @@ export type StartProcessingEvent = {
   event: 'started'
   fileName: string
   fileId: number
+  operation: 'processing'
 }
 
 export interface SuccessProcessingEvent {
@@ -17,25 +18,37 @@ export interface SuccessProcessingEvent {
   height: number
   format: Format
   quality: number
+  operation: 'processing'
+  originalWidth: number
+  originalHeight: number
 }
 
 export type ErrorProcessingEvent = {
   event: 'error'
   fileId: number
   fileName: string
+  operation: 'processing'
 }
 
 export type StartArchivingEvent = {
   event: 'started'
+  operation: 'archiving'
 }
 
 export type SuccessArchivingEvent = {
   event: 'success'
   path: string
+  operation: 'archiving'
 }
 
 export type ErrorArchivingEvent = {
   event: 'error'
+  operation: 'archiving'
+}
+
+export type SuccessFlushingEvent = {
+  event: 'success'
+  operation: 'flushing'
 }
 
 export type ProcessingEvent =
@@ -47,6 +60,10 @@ export type ArchivingEvent =
   | StartArchivingEvent
   | SuccessArchivingEvent
   | ErrorArchivingEvent
+
+export type FlushingEvent = SuccessFlushingEvent
+
+export type Event = ProcessingEvent | ArchivingEvent | FlushingEvent
 
 export enum Format {
   WEBP = 'webp',

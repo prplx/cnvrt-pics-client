@@ -43,7 +43,7 @@ export const useApiRequest = () => {
       method: 'POST',
     })
 
-  const getWebsocketUrl = (jobId: number) =>
+  const getWebsocketUrl = (jobId: string | number) =>
     `${process.env.NEXT_PUBLIC_SERVER_WS_URL}/${jobId}?appCheckToken=${
       appCheckTokenRef.current ?? ''
     }`
