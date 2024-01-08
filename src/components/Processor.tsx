@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect } from 'react'
 import { Dropzone } from '@/components/Dropzone'
 import { Comparator } from '@/components/Comparator'
 import {
@@ -16,11 +16,10 @@ import {
   buildDownloadUrl,
 } from '@/lib/utils'
 import { FormatSelector } from '@/components/FormatSelector'
-import { Button } from '@/components/ui/button'
 import { Slider, type SliderValue } from '@nextui-org/react'
 import { useApiRequest } from '@/hooks/useApiRequest'
 import { useStore } from '@/store'
-import { ProcessorModal } from '@/components/ProcessorModal'
+import { ProcessingModal } from '@/components/ProcessingModal'
 import useWebSocket from 'react-use-websocket'
 
 export const Processor = () => {
@@ -183,21 +182,18 @@ export const Processor = () => {
   }, [lastJsonMessage])
 
   useEffect(() => {
-    if (!jobId || socketUrl) return
+    if (!jobId) return
     setSocketUrl(getWebsocketUrl(jobId))
   }, [jobId])
 
   return (
     <div className='mt-10'>
       <Dropzone />
-      <ProcessorModal
+      <ProcessingModal
         isDownloadingAll={isDownloadingAll}
         onDownloadAll={onDownloadAll}
       />
-      {(currentJob?.files.length || 0) > 1 && (
-        <Button onClick={onDownloadAll}>Download all</Button>
-      )}
-      {currentJob &&
+      {/* {currentJob &&
         currentJob.files.map(file => (
           <div className='mt-8 w-full' key={file.sourceFile}>
             <div className='flex justify-between w-5/6'>
@@ -264,7 +260,7 @@ export const Processor = () => {
               </div>
             </div>
           </div>
-        ))}
+        ))} */}
     </div>
   )
 }

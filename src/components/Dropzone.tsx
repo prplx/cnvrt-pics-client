@@ -13,6 +13,7 @@ import {
 } from '@nextui-org/react'
 import { useApiRequest } from '@/hooks/useApiRequest'
 import { useStore } from '@/store'
+import { DEFAULT_IMAGE_QUALITY } from '@/lib/constants'
 
 type Props = {}
 
@@ -29,7 +30,7 @@ export const Dropzone: FC<Props> = () => {
     const formData = new FormData()
     const queryParams = new URLSearchParams({
       format,
-      quality: '80',
+      quality: DEFAULT_IMAGE_QUALITY.toString(),
     })
     if (jobId) {
       queryParams.append('jobId', jobId)
