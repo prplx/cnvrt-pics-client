@@ -1,3 +1,23 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.thumbnails:has(> :nth-child(1)) {
+  grid-template-columns: repeat(1, 8rem);
+}
+
+.thumbnails:has(> :nth-child(2)) {
+  grid-template-columns: repeat(2, 8rem);
+}
+
+.thumbnails:has(> :nth-child(3)) {
+  grid-template-columns: repeat(3, 8rem);
+}
+
+.thumbnails:has(> :nth-child(4)) {
+  grid-template-columns: repeat(4, 8rem);
+}
+
+.thumbnails:has(> :nth-child(5)) {
+  grid-template-columns: repeat(5, 8rem);
+}

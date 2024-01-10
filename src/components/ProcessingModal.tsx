@@ -21,6 +21,8 @@ import { useImmer } from 'use-immer'
 import { Slider, type SliderValue } from '@nextui-org/react'
 import { Comparator } from '@/components/Comparator'
 import { DEFAULT_IMAGE_QUALITY } from '@/lib/constants'
+import { FormatSelector } from '@/components/FormatSelector'
+import { Format } from '@/lib/types'
 
 type Thumbnail = {
   fileName: string
@@ -47,6 +49,7 @@ export const ProcessingModal: FC<Props> = ({
   const { isOpen, onOpen, onClose } = useDisclosure()
 
   const onModalClose = () => {
+    setThumbnails([])
     resetStore()
     onClose()
   }
@@ -117,7 +120,9 @@ export const ProcessingModal: FC<Props> = ({
         {_onClose => (
           <ModalBody>
             <div className='flex flex-col align-center m-6 mb-0 p-6 bg-zinc-800 rounded-xl'>
-              <div className='thumbnails grid justify-items-center justify-center gap-4 grid-cols-[repeat(5,_128px)]'>
+              <div
+                className={`thumbnails grid justify-items-center justify-center gap-4 grid-cols-[repeat(5,_128px)]`}
+              >
                 {uploadedFiles.map((file, idx) => (
                   <div key={file.name}>
                     <Skeleton
@@ -170,16 +175,15 @@ export const ProcessingModal: FC<Props> = ({
               )}
             </div>
             <div className='max-h-[50vh] overflow-x-hidden p-6 pt-0'>
-              {currentJob.id &&
-                currentJob.files.map(file => (
+              {uploadedFiles.map((_, idx) => {
+                const file = currentJob.files[idx]
+
+                return file ? (
                   <div className='w-full mt-6' key={file.sourceFile}>
-                    <div className='flex justify-between w-5/6'>
-                      <div>
-                        Source file size:{' '}
-                        {getFormattedFileSize(+file.sourceFileSize)}
-                      </div>
-                      <div>
-                        Compressed file size:{' '}
+                    <div className='flex justify-end w-5/6 mb-1'>
+                      <div className='text-sm'>
+                        {file.sourceFile}{' '}
+                        {getFormattedFileSize(+file.sourceFileSize)} {'->'}{' '}
                         {getFormattedFileSize(+file.targetFileSize)} (
                         {getStringifiedConversionRate(
                           +file.sourceFileSize,
@@ -204,12 +208,18 @@ export const ProcessingModal: FC<Props> = ({
                       </div>
                       <div className='w-1/6'>
                         <div className='ml-4'>
-                          Format
-                          {/* <FormatSelector
-                    value={file.format}
-                    onChange={onFileFormatChange(file)}
-                  /> */}
-                          <div className='mt-4 '>
+                          <div className='flex justify-between text-sm'>
+                            Format
+                            <FormatSelector
+                              trigger={(format: Format) => (
+                                <span className='border-b-1 border-dashed'>
+                                  {format.toUpperCase()}
+                                </span>
+                              )}
+                              onChange={format => console.log(format)}
+                            />
+                          </div>
+                          <div className='mt-6'>
                             <div className='flex items-center'>
                               <Slider
                                 label='Quality'
@@ -218,6 +228,8 @@ export const ProcessingModal: FC<Props> = ({
                                 step={1}
                                 className='w-[140px]'
                                 defaultValue={DEFAULT_IMAGE_QUALITY}
+                                size='sm'
+                                color='secondary'
                                 // onChangeEnd={onFileQualityCommit(file)}
                               />
                             </div>
@@ -231,6 +243,8 @@ export const ProcessingModal: FC<Props> = ({
                                 step={1}
                                 className='w-[140px]'
                                 defaultValue={file.width}
+                                size='sm'
+                                color='secondary'
                                 // onChangeEnd={onFileWidthCommit(file)}
                               />
                             </div>
@@ -239,7 +253,17 @@ export const ProcessingModal: FC<Props> = ({
                       </div>
                     </div>
                   </div>
-                ))}
+                ) : (
+                  <div className='flex mt-6'>
+                    <Skeleton className='w-5/6 h-72 rounded-xl'>
+                      <div />
+                    </Skeleton>
+                    <Skeleton className='w-1/6 h-72 ml-4 rounded-xl'>
+                      <div />
+                    </Skeleton>
+                  </div>
+                )
+              })}
             </div>
           </ModalBody>
         )}

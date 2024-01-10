@@ -4,16 +4,11 @@ import { useCallback, useEffect, type FC } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Format } from '@/lib/types'
 import { DownloadCloud, Paperclip } from 'lucide-react'
-import {
-  Button,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-} from '@nextui-org/react'
+import { Button } from '@nextui-org/react'
 import { useApiRequest } from '@/hooks/useApiRequest'
 import { useStore } from '@/store'
 import { DEFAULT_IMAGE_QUALITY } from '@/lib/constants'
+import { FormatSelector } from '@/components/FormatSelector'
 
 type Props = {}
 
@@ -94,22 +89,14 @@ export const Dropzone: FC<Props> = () => {
           <span className='text-slate-500'>
             Your default target format is &nbsp;
           </span>
-          <Dropdown>
-            <DropdownTrigger>
+          <FormatSelector
+            trigger={(format: Format) => (
               <span className='border-b-1 border-dashed'>
                 {format.toUpperCase()}
               </span>
-            </DropdownTrigger>
-            <DropdownMenu
-              selectionMode='single'
-              selectedKeys={[format]}
-              onAction={key => setFormat(key as Format)}
-            >
-              {Object.values(Format).map(format => (
-                <DropdownItem key={format}>{format.toUpperCase()}</DropdownItem>
-              ))}
-            </DropdownMenu>
-          </Dropdown>
+            )}
+            onChange={setFormat}
+          />
         </div>
       </div>
     </div>

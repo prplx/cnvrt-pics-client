@@ -44,6 +44,11 @@
   },
   "devDependencies": {
     "@babel/compat-data": "^7.22.20",
-    "@types/jest": "^29.5.5"
+    "@types/jest": "^29.5.5",
+    "bun-types": "latest"
+  },
+  "module": "index.ts",
+  "peerDependencies": {
+    "typescript": "^5.0.0"
   }
 }

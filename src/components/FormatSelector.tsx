@@ -1,31 +1,32 @@
 import { type FC } from 'react'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from '@nextui-org/react'
 import { Format } from '@/lib/types'
+import { useStore } from '@/store'
 
 type Props = {
-  value: Format
+  trigger: (format: Format) => JSX.Element
   onChange: (value: Format) => void
 }
 
-export const FormatSelector: FC<Props> = ({ value, onChange }) => {
+export const FormatSelector: FC<Props> = ({ trigger, onChange }) => {
+  const format = useStore(state => state.format)
   return (
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className='w-[180px]'>
-        <SelectValue placeholder='Format' />
-      </SelectTrigger>
-      <SelectContent>
+    <Dropdown>
+      <DropdownTrigger>{trigger(format)}</DropdownTrigger>
+      <DropdownMenu
+        selectionMode='single'
+        selectedKeys={[format]}
+        onAction={key => onChange(key as Format)}
+      >
         {Object.values(Format).map(format => (
-          <SelectItem key={format} value={format}>
-            {format}
-          </SelectItem>
+          <DropdownItem key={format}>{format.toUpperCase()}</DropdownItem>
         ))}
-      </SelectContent>
-    </Select>
+      </DropdownMenu>
+    </Dropdown>
   )
 }
