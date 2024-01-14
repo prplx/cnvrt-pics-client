@@ -6,21 +6,26 @@ import {
   DropdownItem,
 } from '@nextui-org/react'
 import { Format } from '@/lib/types'
-import { useStore } from '@/store'
 
 type Props = {
+  value: Format
   trigger: (format: Format) => JSX.Element
   onChange: (value: Format) => void
+  isDisabled?: boolean
 }
 
-export const FormatSelector: FC<Props> = ({ trigger, onChange }) => {
-  const format = useStore(state => state.format)
+export const FormatSelector: FC<Props> = ({
+  value,
+  trigger,
+  onChange,
+  isDisabled,
+}) => {
   return (
-    <Dropdown>
-      <DropdownTrigger>{trigger(format)}</DropdownTrigger>
+    <Dropdown isDisabled={!!isDisabled}>
+      <DropdownTrigger>{trigger(value)}</DropdownTrigger>
       <DropdownMenu
         selectionMode='single'
-        selectedKeys={[format]}
+        selectedKeys={[value]}
         onAction={key => onChange(key as Format)}
       >
         {Object.values(Format).map(format => (

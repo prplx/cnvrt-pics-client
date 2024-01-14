@@ -7,18 +7,20 @@ import {
   Skeleton,
   Button,
   Link,
+  Spinner,
 } from '@nextui-org/react'
 import { useStore } from '@/store'
 import clsx from 'clsx'
-import { type DowloadData } from '@/lib/types'
+import { SuccessProcessingEvent, type DowloadData } from '@/lib/types'
 import {
   getDownloadData,
   getStringifiedConversionRate,
   getFormattedFileSize,
   buildDownloadUrl,
+  calculateFileHeight,
 } from '@/lib/utils'
 import { useImmer } from 'use-immer'
-import { Slider, type SliderValue } from '@nextui-org/react'
+import { Slider } from '@nextui-org/react'
 import { Comparator } from '@/components/Comparator'
 import { DEFAULT_IMAGE_QUALITY } from '@/lib/constants'
 import { FormatSelector } from '@/components/FormatSelector'
@@ -34,12 +36,17 @@ type Thumbnail = {
 
 type Props = {
   onDownloadAll: () => void
+  onChangeFileProperties: (
+    file: SuccessProcessingEvent,
+    props: Partial<SuccessProcessingEvent>
+  ) => void
   isDownloadingAll: boolean
 }
 
 export const ProcessingModal: FC<Props> = ({
   isDownloadingAll,
   onDownloadAll,
+  onChangeFileProperties,
 }) => {
   const uploadedFiles = useStore(state => state.uploadedFiles)
   const lastProcessingEvent = useStore(state => state.lastProcessingEvent)
@@ -58,7 +65,7 @@ export const ProcessingModal: FC<Props> = ({
     isDownloadingAll || thumbnails.some(th => !th?.downloadData?.url)
 
   const isDownloadByIdxDisabled = (idx: number) =>
-    !thumbnails[idx]?.downloadData?.url
+    !thumbnails[idx]?.downloadData?.url || currentJob.files[idx]?.pending
 
   useEffect(() => {
     if (uploadedFiles.length) {
@@ -177,9 +184,8 @@ export const ProcessingModal: FC<Props> = ({
             <div className='max-h-[50vh] overflow-x-hidden p-6 pt-0'>
               {uploadedFiles.map((_, idx) => {
                 const file = currentJob.files[idx]
-
                 return file ? (
-                  <div className='w-full mt-6' key={file.sourceFile}>
+                  <div className='w-full mt-6' key={file.fileId}>
                     <div className='flex justify-end w-5/6 mb-1'>
                       <div className='text-sm'>
                         {file.sourceFile}{' '}
@@ -211,12 +217,16 @@ export const ProcessingModal: FC<Props> = ({
                           <div className='flex justify-between text-sm'>
                             Format
                             <FormatSelector
+                              value={file.format}
                               trigger={(format: Format) => (
                                 <span className='border-b-1 border-dashed'>
                                   {format.toUpperCase()}
                                 </span>
                               )}
-                              onChange={format => console.log(format)}
+                              onChange={format =>
+                                onChangeFileProperties(file, { format })
+                              }
+                              isDisabled={isDownloadByIdxDisabled(idx)}
                             />
                           </div>
                           <div className='mt-6'>
@@ -230,7 +240,11 @@ export const ProcessingModal: FC<Props> = ({
                                 defaultValue={DEFAULT_IMAGE_QUALITY}
                                 size='sm'
                                 color='secondary'
-                                // onChangeEnd={onFileQualityCommit(file)}
+                                onChangeEnd={quality => {
+                                  !Array.isArray(quality) &&
+                                    onChangeFileProperties(file, { quality })
+                                }}
+                                isDisabled={isDownloadByIdxDisabled(idx)}
                               />
                             </div>
                           </div>
@@ -245,16 +259,40 @@ export const ProcessingModal: FC<Props> = ({
                                 defaultValue={file.width}
                                 size='sm'
                                 color='secondary'
-                                // onChangeEnd={onFileWidthCommit(file)}
+                                onChangeEnd={width => {
+                                  if (Array.isArray(width)) return
+                                  const height = calculateFileHeight(
+                                    file,
+                                    width
+                                  )
+                                  onChangeFileProperties(file, {
+                                    width,
+                                    height,
+                                  })
+                                }}
+                                getValue={width =>
+                                  `${width}x${calculateFileHeight(
+                                    file,
+                                    width as number
+                                  )}`
+                                }
+                                isDisabled={isDownloadByIdxDisabled(idx)}
                               />
                             </div>
+                          </div>
+                          <div className='mt-4'>
+                            {isDownloadByIdxDisabled(idx) && (
+                              <>
+                                <Spinner color='default' />
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className='flex mt-6'>
+                  <div className='flex mt-6' key={idx}>
                     <Skeleton className='w-5/6 h-72 rounded-xl'>
                       <div />
                     </Skeleton>

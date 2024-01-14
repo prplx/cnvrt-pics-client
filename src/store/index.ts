@@ -16,6 +16,7 @@ interface State {
   setFormat: (f: Format) => void
   setUploadedFiles: (files: File[]) => void
   setLastProcessingEvent: (evt: SuccessProcessingEvent) => void
+  setFilePending: (file: SuccessProcessingEvent, isPending: boolean) => void
   reset: () => void
 }
 
@@ -68,6 +69,15 @@ export const useStore = create<State>()(
       setLastProcessingEvent: evt =>
         set(state => {
           state.lastProcessingEvent = evt
+        }),
+      setFilePending: (file, isPending) =>
+        set(state => {
+          const jobFileIdx = state.currentJob.files.findIndex(
+            f => f.fileId === file.fileId
+          )
+          if (jobFileIdx !== -1) {
+            state.currentJob.files[jobFileIdx].pending = isPending
+          }
         }),
       reset: () => set(() => initialState),
     }))

@@ -11,35 +11,42 @@ export const useApiRequest = () => {
     })
   })
 
-  const makeResponse = async <T>(uri: string, options: RequestInit) => {
+  const makeResponse = async (
+    uri: string,
+    options: RequestInit
+  ): Promise<Response> => {
     const headers = {
       ...options.headers,
       'X-Firebase-AppCheck': appCheckTokenRef.current ?? '',
     }
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${uri}`, {
+    return fetch(`${process.env.NEXT_PUBLIC_API_URL}${uri}`, {
       ...options,
       headers,
     })
-
-    return (await response.json()) as T
   }
 
-  const processJob = async (body: FormData, queryParams: URLSearchParams) =>
-    makeResponse<{ job_id: number }>(`/process?${queryParams}`, {
+  const processJob = async (
+    body: FormData,
+    queryParams: URLSearchParams
+  ): Promise<{ job_id: number }> => {
+    const response = makeResponse(`/process?${queryParams}`, {
       method: 'POST',
       body,
     })
 
+    return (await response).json()
+  }
+
   const processFile = async (
     jobId: string | number,
     queryParams: URLSearchParams
-  ) =>
-    makeResponse<undefined>(`/process/${jobId}?${queryParams}`, {
+  ): Promise<Response> =>
+    makeResponse(`/process/${jobId}?${queryParams}`, {
       method: 'POST',
     })
 
-  const archiveJob = async (jobId: string | number) =>
-    makeResponse<undefined>(`/archive/${jobId}`, {
+  const archiveJob = async (jobId: string | number): Promise<Response> =>
+    makeResponse(`/archive/${jobId}`, {
       method: 'POST',
     })
 

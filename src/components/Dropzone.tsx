@@ -90,7 +90,8 @@ export const Dropzone: FC<Props> = () => {
             Your default target format is &nbsp;
           </span>
           <FormatSelector
-            trigger={(format: Format) => (
+            value={format}
+            trigger={() => (
               <span className='border-b-1 border-dashed'>
                 {format.toUpperCase()}
               </span>

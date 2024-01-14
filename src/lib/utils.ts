@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { useStore } from '@/store'
+import { type SuccessProcessingEvent } from './types'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -74,4 +75,12 @@ export const getDownloadData = (name: string) => {
     fileName = removeExtension(file.sourceFile) + '.' + extension
   }
   return { fileName, url }
+}
+
+export const calculateFileHeight = (
+  file: SuccessProcessingEvent,
+  width: number
+): number => {
+  const ratio = file.width / file.height
+  return Math.round(width / ratio)
 }

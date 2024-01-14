@@ -21,6 +21,7 @@ export interface SuccessProcessingEvent {
   operation: 'processing'
   originalWidth: number
   originalHeight: number
+  pending?: boolean
 }
 
 export type ErrorProcessingEvent = {
