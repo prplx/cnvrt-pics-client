@@ -20,7 +20,7 @@ export default function RootLayout({
       <body className={`${inter.className} overscroll-none`}>
         <Providers>
           <div className='container'>
-            <h1 className='text-white z-[2] relative text-2xl font-medium mt-12 uppercase tracking-wider'>
+            <h1 className='text-white z-[2] relative text-2xl font-light mt-12 uppercase tracking-wider'>
               {process.env.NEXT_PUBLIC_APP_NAME}
             </h1>
           </div>

@@ -7,7 +7,6 @@ import {
   Skeleton,
   Button,
   Link,
-  Spinner,
 } from '@nextui-org/react'
 import { useStore } from '@/store'
 import clsx from 'clsx'
@@ -121,15 +120,16 @@ export const ProcessingModal: FC<Props> = ({
       isDismissable={false}
       classNames={{
         body: 'p-0 gap-0',
+        base: 'overflow-y-visible',
+        closeButton:
+          '-top-4 -right-4 text-block hover:bg-purple-dark text-xl bg-purple',
       }}
     >
       <ModalContent>
         {_onClose => (
           <ModalBody>
-            <div className='flex flex-col align-center m-6 mb-0 p-6 bg-zinc-800 rounded-xl'>
-              <div
-                className={`thumbnails grid justify-items-center justify-center gap-4 grid-cols-[repeat(5,_128px)]`}
-              >
+            <div className='flex flex-col align-center m-6 mb-0 p-6 bg-zinc-800 rounded-xl shadow-md bg-dotted border border-zinc-700'>
+              <div className='thumbnails grid justify-items-center justify-center gap-4 grid-cols-[repeat(5,_128px)]'>
                 {uploadedFiles.map((file, idx) => (
                   <div key={file.name}>
                     <Skeleton
@@ -137,6 +137,13 @@ export const ProcessingModal: FC<Props> = ({
                       isLoaded={!!thumbnails[idx]?.data}
                     >
                       <div className='relative rounded-md overflow-hidden h-32 w-32 border border-zinc-600'>
+                        <div className='text-4xl text-white relative z-10 [text-shadow:_1px_1px_1px_rgb(0_0_0_/_50%)] flex items-center justify-center w-full h-full bg-black/30'>
+                          {currentJob.files[idx] &&
+                            getStringifiedConversionRate(
+                              +currentJob.files[idx].sourceFileSize,
+                              +currentJob.files[idx].targetFileSize
+                            )}
+                        </div>
                         <img
                           src={thumbnails[idx]?.data}
                           className={clsx(
@@ -181,13 +188,13 @@ export const ProcessingModal: FC<Props> = ({
                 </Button>
               )}
             </div>
-            <div className='max-h-[50vh] overflow-x-hidden p-6 pt-0'>
+            <div className='max-h-[50vh] overflow-x-hidden p-6 pt-0 mt-2'>
               {uploadedFiles.map((_, idx) => {
                 const file = currentJob.files[idx]
                 return file ? (
                   <div className='w-full mt-6' key={file.fileId}>
                     <div className='flex justify-end w-5/6 mb-1'>
-                      <div className='text-sm'>
+                      <div className='text-sm overflow-x-hidden whitespace-nowrap text-ellipsis rtl'>
                         {file.sourceFile}{' '}
                         {getFormattedFileSize(+file.sourceFileSize)} {'->'}{' '}
                         {getFormattedFileSize(+file.targetFileSize)} (
@@ -199,7 +206,7 @@ export const ProcessingModal: FC<Props> = ({
                       </div>
                     </div>
                     <div className='flex'>
-                      <div className='w-5/6 border border-zinc-600 rounded-xl overflow-hidden'>
+                      <div className='w-5/6 border border-zinc-700 rounded-xl overflow-hidden'>
                         <Comparator
                           sourceUrl={buildDownloadUrl(
                             currentJob.id!,
@@ -279,13 +286,6 @@ export const ProcessingModal: FC<Props> = ({
                                 isDisabled={isDownloadByIdxDisabled(idx)}
                               />
                             </div>
-                          </div>
-                          <div className='mt-4'>
-                            {isDownloadByIdxDisabled(idx) && (
-                              <>
-                                <Spinner color='default' />
-                              </>
-                            )}
                           </div>
                         </div>
                       </div>

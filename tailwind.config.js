@@ -23,6 +23,8 @@ module.exports = {
     extend: {
       colors: {
         emerald: '#50C27D',
+        purple: '#9353d3',
+        ['purple-dark']: '#7828c8',
       },
     },
   },

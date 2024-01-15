@@ -9,6 +9,7 @@ import { useApiRequest } from '@/hooks/useApiRequest'
 import { useStore } from '@/store'
 import { DEFAULT_IMAGE_QUALITY } from '@/lib/constants'
 import { FormatSelector } from '@/components/FormatSelector'
+import { getDropZoneAcceptFromFormats } from '@/lib/utils'
 
 type Props = {}
 
@@ -51,7 +52,10 @@ export const Dropzone: FC<Props> = () => {
   const onDrop = useCallback((files: File[]) => {
     setUploadedFiles(files)
   }, [])
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: getDropZoneAcceptFromFormats(),
+  })
   const originalDropZoneOnClick = getRootProps().onClick
 
   useEffect(() => {
@@ -66,7 +70,7 @@ export const Dropzone: FC<Props> = () => {
         className='w-full h-60 flex flex-col justify-center items-center cursor-pointer mx-auto border rounded-xl border-dashed border-slate-400'
       >
         <input {...getInputProps()} />
-        <div className='text-emerald mb-2'>
+        <div className='text-purple mb-2'>
           <DownloadCloud size={32} />
         </div>
         {isDragActive ? (
@@ -91,7 +95,7 @@ export const Dropzone: FC<Props> = () => {
           </span>
           <FormatSelector
             value={format}
-            trigger={() => (
+            trigger={(format: Format) => (
               <span className='border-b-1 border-dashed'>
                 {format.toUpperCase()}
               </span>

@@ -5,7 +5,7 @@ export default function Home() {
     <main className='flex flex-col items-center pt-20 z-[2] relative'>
       <div className='hero text-center'>
         <h1>
-          <span className='text-emerald text-8xl font-light'>Convert your</span>
+          <span className='text-purple text-8xl font-light'>Convert your</span>
           <br />
           <span className='text-white text-7xl font-medium leading-normal tracking-wide'>
             images easily

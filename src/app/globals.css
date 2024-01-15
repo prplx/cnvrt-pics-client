@@ -21,3 +21,26 @@
 .thumbnails:has(> :nth-child(5)) {
   grid-template-columns: repeat(5, 8rem);
 }
+
+.bg-dotted {
+  --dot-bg: #27272a;
+  --dot-color: #71717a;
+  --dot-size: 1px;
+  --dot-space: 22px;
+  background: linear-gradient(
+        90deg,
+        var(--dot-bg) calc(var(--dot-space) - var(--dot-size)),
+        transparent 1%
+      )
+      center / var(--dot-space) var(--dot-space),
+    linear-gradient(
+        var(--dot-bg) calc(var(--dot-space) - var(--dot-size)),
+        transparent 1%
+      )
+      center / var(--dot-space) var(--dot-space),
+    var(--dot-color);
+}
+
+.rtl {
+  direction: rtl;
+}

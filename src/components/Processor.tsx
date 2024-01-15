@@ -27,6 +27,11 @@ export const Processor = () => {
   ) => {
     if (!jobId) return
 
+    const wasSomethingChanged = Object.entries(props).some(
+      ([key, value]) => file[key as keyof SuccessProcessingEvent] !== value
+    )
+    if (!wasSomethingChanged) return
+
     const queryParams = new URLSearchParams({
       format: props.format ?? file.format,
       quality: String(props.quality ?? file.quality),

@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { useStore } from '@/store'
-import { type SuccessProcessingEvent } from './types'
+import { type SuccessProcessingEvent, Format } from './types'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -84,3 +84,9 @@ export const calculateFileHeight = (
   const ratio = file.width / file.height
   return Math.round(width / ratio)
 }
+
+export const getDropZoneAcceptFromFormats = (): Record<string, []> =>
+  Object.values(Format).reduce<Record<string, []>>((acc, format) => {
+    acc[`image/${format}`] = []
+    return acc
+  }, {})
