@@ -67,7 +67,7 @@ export const Dropzone: FC<Props> = () => {
       <div
         {...getRootProps()}
         onClick={undefined}
-        className='w-full h-60 flex flex-col justify-center items-center cursor-pointer mx-auto border rounded-xl border-dashed border-slate-400'
+        className='w-full h-60 flex flex-col justify-center items-center mx-auto border rounded-xl border-dashed border-slate-400'
       >
         <input {...getInputProps()} />
         <div className='text-purple mb-2'>

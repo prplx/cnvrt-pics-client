@@ -24,6 +24,7 @@ import { Comparator } from '@/components/Comparator'
 import { DEFAULT_IMAGE_QUALITY } from '@/lib/constants'
 import { FormatSelector } from '@/components/FormatSelector'
 import { Format } from '@/lib/types'
+import { X, Plus } from 'lucide-react'
 
 type Thumbnail = {
   fileName: string
@@ -122,7 +123,7 @@ export const ProcessingModal: FC<Props> = ({
         body: 'p-0 gap-0',
         base: 'overflow-y-visible',
         closeButton:
-          '-top-4 -right-4 text-block hover:bg-purple-dark text-xl bg-purple',
+          '-top-4 -right-4 text-block text-xl bg-purple hover:bg-purple/90',
       }}
     >
       <ModalContent>
@@ -133,32 +134,41 @@ export const ProcessingModal: FC<Props> = ({
                 {uploadedFiles.map((file, idx) => (
                   <div key={file.name}>
                     <Skeleton
-                      className='rounded'
+                      className='rounded overflow-visible'
                       isLoaded={!!thumbnails[idx]?.data}
                     >
-                      <div className='relative rounded-md overflow-hidden h-32 w-32 border border-zinc-600'>
-                        <div className='text-4xl text-white relative z-10 [text-shadow:_1px_1px_1px_rgb(0_0_0_/_50%)] flex items-center justify-center w-full h-full bg-black/30'>
-                          {currentJob.files[idx] &&
-                            getStringifiedConversionRate(
-                              +currentJob.files[idx].sourceFileSize,
-                              +currentJob.files[idx].targetFileSize
+                      <div className='relative'>
+                        <Button
+                          isIconOnly
+                          color='secondary'
+                          className='absolute -top-3 -right-3 z-20 rounded-full w-7 h-7 min-w-[unset]'
+                        >
+                          <X size='16' />
+                        </Button>
+                        <div className='relative rounded-md overflow-hidden h-32 w-32 border border-zinc-600'>
+                          <div className='text-4xl text-white relative z-10 [text-shadow:_1px_1px_1px_rgb(0_0_0_/_50%)] flex items-center justify-center w-full h-full bg-black/30'>
+                            {currentJob.files[idx] &&
+                              getStringifiedConversionRate(
+                                +currentJob.files[idx].sourceFileSize,
+                                +currentJob.files[idx].targetFileSize
+                              )}
+                          </div>
+                          <img
+                            src={thumbnails[idx]?.data}
+                            className={clsx(
+                              'absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 min-h-full min-w-full max-w-[unset] max-h-[unset]',
+                              {
+                                'h-full':
+                                  thumbnails[idx]?.width >=
+                                  thumbnails[idx]?.height,
+                                'w-full':
+                                  thumbnails[idx]?.height >
+                                  thumbnails[idx]?.width,
+                              }
                             )}
+                            alt={`thumbnail ${idx}`}
+                          />
                         </div>
-                        <img
-                          src={thumbnails[idx]?.data}
-                          className={clsx(
-                            'absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 min-h-full min-w-full max-w-[unset] max-h-[unset]',
-                            {
-                              'h-full':
-                                thumbnails[idx]?.width >=
-                                thumbnails[idx]?.height,
-                              'w-full':
-                                thumbnails[idx]?.height >
-                                thumbnails[idx]?.width,
-                            }
-                          )}
-                          alt={`thumbnail ${idx}`}
-                        />
                       </div>
                     </Skeleton>
                     <Button
@@ -174,6 +184,11 @@ export const ProcessingModal: FC<Props> = ({
                     </Button>
                   </div>
                 ))}
+                {uploadedFiles.length < 10 && (
+                  <Button isIconOnly className='h-32 w-32 bg-zinc-700'>
+                    <Plus size='40' />
+                  </Button>
+                )}
               </div>
               {thumbnails.length > 1 && (
                 <Button

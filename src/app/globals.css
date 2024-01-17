@@ -44,3 +44,7 @@
 .rtl {
   direction: rtl;
 }
+
+.__rcs-handle-button > div {
+  color: #9353d3;
+}
