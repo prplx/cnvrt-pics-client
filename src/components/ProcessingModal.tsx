@@ -1,4 +1,4 @@
-import { useEffect, type FC } from 'react'
+import { useEffect, useCallback, useRef, type FC } from 'react'
 import {
   Modal,
   ModalContent,
@@ -25,6 +25,8 @@ import { DEFAULT_IMAGE_QUALITY } from '@/lib/constants'
 import { FormatSelector } from '@/components/FormatSelector'
 import { Format } from '@/lib/types'
 import { X, Plus } from 'lucide-react'
+import { useDropzone } from 'react-dropzone'
+import { getDropZoneAcceptFromFormats } from '@/lib/utils'
 
 type Thumbnail = {
   fileName: string
@@ -53,7 +55,25 @@ export const ProcessingModal: FC<Props> = ({
   const currentJob = useStore(state => state.currentJob)
   const [thumbnails, setThumbnails] = useImmer<Thumbnail[]>([])
   const resetStore = useStore(state => state.reset)
+  const addToUploadedFiles = useStore(state => state.addToUploadedFiles)
   const { isOpen, onOpen, onClose } = useDisclosure()
+  const scrollableRef = useRef<HTMLDivElement>(null)
+
+  const onDrop = useCallback((files: File[]) => {
+    if (uploadedFiles.find(f => f.name === files[0].name)) {
+      // TODO: show toast error message here
+      return
+    } else {
+      addToUploadedFiles(files[0])
+    }
+  }, [])
+
+  const { getRootProps } = useDropzone({
+    onDrop,
+    accept: getDropZoneAcceptFromFormats(),
+    maxFiles: 1,
+  })
+  const originalDropZoneOnClick = getRootProps().onClick
 
   const onModalClose = () => {
     setThumbnails([])
@@ -68,13 +88,13 @@ export const ProcessingModal: FC<Props> = ({
     !thumbnails[idx]?.downloadData?.url || currentJob.files[idx]?.pending
 
   useEffect(() => {
-    if (uploadedFiles.length) {
+    if (uploadedFiles.length && !isOpen) {
       onOpen()
     }
   }, [uploadedFiles])
 
   useEffect(() => {
-    uploadedFiles.forEach((file, idx) => {
+    const fn = (file: File, idx: number) => {
       const thumbnailReader = new FileReader()
 
       thumbnailReader.onload = () => {
@@ -95,8 +115,19 @@ export const ProcessingModal: FC<Props> = ({
         image.src = binaryStr
       }
       thumbnailReader.readAsDataURL(file)
-    })
-  }, [uploadedFiles])
+    }
+
+    if (!isOpen) {
+      uploadedFiles.forEach(fn)
+    } else {
+      fn(uploadedFiles[uploadedFiles.length - 1], uploadedFiles.length - 1)
+
+      if (scrollableRef.current) {
+        const el = scrollableRef.current
+        el.scroll({ top: el.scrollHeight, behavior: 'smooth' })
+      }
+    }
+  }, [uploadedFiles, isOpen])
 
   useEffect(() => {
     if (lastProcessingEvent) {
@@ -185,7 +216,11 @@ export const ProcessingModal: FC<Props> = ({
                   </div>
                 ))}
                 {uploadedFiles.length < 10 && (
-                  <Button isIconOnly className='h-32 w-32 bg-zinc-700'>
+                  <Button
+                    isIconOnly
+                    className='h-32 w-32 bg-zinc-700'
+                    onPress={e => originalDropZoneOnClick?.(e as never)}
+                  >
                     <Plus size='40' />
                   </Button>
                 )}
@@ -203,7 +238,10 @@ export const ProcessingModal: FC<Props> = ({
                 </Button>
               )}
             </div>
-            <div className='max-h-[50vh] overflow-x-hidden p-6 pt-0 mt-2'>
+            <div
+              className='max-h-[50vh] overflow-x-hidden p-6 pt-0 mt-2'
+              ref={scrollableRef}
+            >
               {uploadedFiles.map((_, idx) => {
                 const file = currentJob.files[idx]
                 return file ? (

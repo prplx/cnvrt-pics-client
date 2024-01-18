@@ -17,6 +17,7 @@ interface State {
   setUploadedFiles: (files: File[]) => void
   setLastProcessingEvent: (evt: SuccessProcessingEvent) => void
   setFilePending: (file: SuccessProcessingEvent, isPending: boolean) => void
+  addToUploadedFiles: (file: File) => void
   reset: () => void
 }
 
@@ -78,6 +79,10 @@ export const useStore = create<State>()(
           if (jobFileIdx !== -1) {
             state.currentJob.files[jobFileIdx].pending = isPending
           }
+        }),
+      addToUploadedFiles: file =>
+        set(state => {
+          state.uploadedFiles.push(file)
         }),
       reset: () => set(() => initialState),
     }))
