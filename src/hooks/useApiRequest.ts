@@ -37,6 +37,27 @@ export const useApiRequest = () => {
     return (await response).json()
   }
 
+  const addFileToJob = async (
+    jobId: string | number,
+    body: FormData,
+    queryParams: URLSearchParams
+  ): Promise<{ job_id: number }> => {
+    const response = makeResponse(`/process/${jobId}?${queryParams}`, {
+      method: 'PUT',
+      body,
+    })
+
+    return (await response).json()
+  }
+
+  const deleteFileFromJob = async (
+    jobId: string | number,
+    queryParams: URLSearchParams
+  ): Promise<Response> =>
+    makeResponse(`/process/${jobId}/?${queryParams}`, {
+      method: 'DELETE',
+    })
+
   const processFile = async (
     jobId: string | number,
     queryParams: URLSearchParams
@@ -60,5 +81,7 @@ export const useApiRequest = () => {
     processFile,
     getWebsocketUrl,
     archiveJob,
+    addFileToJob,
+    deleteFileFromJob,
   }
 }

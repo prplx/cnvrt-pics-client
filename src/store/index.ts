@@ -18,6 +18,7 @@ interface State {
   setLastProcessingEvent: (evt: SuccessProcessingEvent) => void
   setFilePending: (file: SuccessProcessingEvent, isPending: boolean) => void
   addToUploadedFiles: (file: File) => void
+  removeFile: (file: SuccessProcessingEvent) => void
   reset: () => void
 }
 
@@ -85,6 +86,15 @@ export const useStore = create<State>()(
           state.uploadedFiles.push(file)
         }),
       reset: () => set(() => initialState),
+      removeFile: file =>
+        set(state => {
+          state.uploadedFiles = state.uploadedFiles.filter(
+            f => f.name !== file.sourceFile
+          )
+          state.currentJob.files = state.currentJob.files.filter(
+            f => f.fileId !== file.fileId
+          )
+        }),
     }))
   )
 )

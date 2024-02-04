@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useCallback, useRef, type FC } from 'react'
 import {
   Modal,
@@ -27,6 +29,7 @@ import { Format } from '@/lib/types'
 import { X, Plus } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { getDropZoneAcceptFromFormats } from '@/lib/utils'
+import { useApiRequest } from '@/hooks/useApiRequest'
 
 type Thumbnail = {
   fileName: string
@@ -56,17 +59,54 @@ export const ProcessingModal: FC<Props> = ({
   const [thumbnails, setThumbnails] = useImmer<Thumbnail[]>([])
   const resetStore = useStore(state => state.reset)
   const addToUploadedFiles = useStore(state => state.addToUploadedFiles)
+  const removeFileFromJob = useStore(state => state.removeFile)
   const { isOpen, onOpen, onClose } = useDisclosure()
   const scrollableRef = useRef<HTMLDivElement>(null)
+  const format = useStore(state => state.format)
+  const { addFileToJob, deleteFileFromJob } = useApiRequest()
+  const fileWasRemoved = useRef<boolean>(false)
 
-  const onDrop = useCallback((files: File[]) => {
-    if (uploadedFiles.find(f => f.name === files[0].name)) {
-      // TODO: show toast error message here
-      return
-    } else {
-      addToUploadedFiles(files[0])
-    }
-  }, [])
+  const onDrop = useCallback(
+    (files: File[]) => {
+      if (uploadedFiles.find(f => f.name === files[0].name)) {
+        // TODO: show toast error message here
+        return
+      } else {
+        if (!currentJob.id) return
+        fileWasRemoved.current = false
+        const file = files[0]
+        addToUploadedFiles(file)
+        const formData = new FormData()
+        const queryParams = new URLSearchParams({
+          format,
+          quality: DEFAULT_IMAGE_QUALITY.toString(),
+        })
+        formData.append('image', new Blob([file]), file.name)
+        addFileToJob(currentJob.id, formData, queryParams).catch(error => {
+          // TODO: show toast error message here
+        })
+      }
+    },
+    [currentJob]
+  )
+
+  const onDeleteFileFromJob = (fileName: string) => {
+    if (!currentJob.id) return
+    const file = currentJob.files.find(f => f.sourceFile === fileName)
+    if (!file) return
+    fileWasRemoved.current = true
+    const queryParams = new URLSearchParams({
+      file_id: String(file.fileId),
+    })
+    deleteFileFromJob(currentJob.id, queryParams)
+      .then(() => {
+        removeFileFromJob(file)
+        setThumbnails(thumbnails.filter(th => th.fileName !== fileName))
+      })
+      .catch(error => {
+        // TODO: show toast error message here
+      })
+  }
 
   const { getRootProps } = useDropzone({
     onDrop,
@@ -94,6 +134,7 @@ export const ProcessingModal: FC<Props> = ({
   }, [uploadedFiles])
 
   useEffect(() => {
+    if (fileWasRemoved.current) return
     const fn = (file: File, idx: number) => {
       const thumbnailReader = new FileReader()
 
@@ -169,13 +210,16 @@ export const ProcessingModal: FC<Props> = ({
                       isLoaded={!!thumbnails[idx]?.data}
                     >
                       <div className='relative'>
-                        <Button
-                          isIconOnly
-                          color='secondary'
-                          className='absolute -top-3 -right-3 z-20 rounded-full w-7 h-7 min-w-[unset]'
-                        >
-                          <X size='16' />
-                        </Button>
+                        {currentJob.files.length > 1 && (
+                          <Button
+                            isIconOnly
+                            color='secondary'
+                            className='absolute -top-3 -right-3 z-20 rounded-full w-7 h-7 min-w-[unset] drop-shadow'
+                            onPress={() => onDeleteFileFromJob(file.name)}
+                          >
+                            <X size='16' />
+                          </Button>
+                        )}
                         <div className='relative rounded-md overflow-hidden h-32 w-32 border border-zinc-600'>
                           <div className='text-4xl text-white relative z-10 [text-shadow:_1px_1px_1px_rgb(0_0_0_/_50%)] flex items-center justify-center w-full h-full bg-black/30'>
                             {currentJob.files[idx] &&
@@ -247,7 +291,7 @@ export const ProcessingModal: FC<Props> = ({
                 return file ? (
                   <div className='w-full mt-6' key={file.fileId}>
                     <div className='flex justify-end w-5/6 mb-1'>
-                      <div className='text-sm overflow-x-hidden whitespace-nowrap text-ellipsis rtl'>
+                      <div className='text-sm overflow-x-hidden whitespace-nowrap text-ellipsis'>
                         {file.sourceFile}{' '}
                         {getFormattedFileSize(+file.sourceFileSize)} {'->'}{' '}
                         {getFormattedFileSize(+file.targetFileSize)} (

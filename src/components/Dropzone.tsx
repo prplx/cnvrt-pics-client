@@ -59,7 +59,7 @@ export const Dropzone: FC<Props> = () => {
   const originalDropZoneOnClick = getRootProps().onClick
 
   useEffect(() => {
-    uploadedFiles.length && onUpload()
+    uploadedFiles.length && !jobId && onUpload()
   }, [uploadedFiles])
 
   return (
