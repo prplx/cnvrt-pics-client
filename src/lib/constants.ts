@@ -1,1 +1,1 @@
-export const DEFAULT_IMAGE_QUALITY = 80
+export const DEFAULT_IMAGE_QUALITY = 75

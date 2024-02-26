@@ -22,6 +22,8 @@ export const useApiRequest = () => {
     return fetch(`${process.env.NEXT_PUBLIC_API_URL}${uri}`, {
       ...options,
       headers,
+      credentials: 'include',
+      mode: 'cors',
     })
   }
 

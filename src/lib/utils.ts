@@ -85,8 +85,19 @@ export const calculateFileHeight = (
   return Math.round(width / ratio)
 }
 
+export const calculateFileWidth = (
+  file: SuccessProcessingEvent,
+  height: number
+): number => {
+  const ratio = file.width / file.height
+  return Math.round(height * ratio)
+}
+
 export const getDropZoneAcceptFromFormats = (): Record<string, []> =>
   Object.values(Format).reduce<Record<string, []>>((acc, format) => {
     acc[`image/${format}`] = []
     return acc
   }, {})
+
+export const getFirst = <T>(prop: T): T extends (infer U)[] ? U : T =>
+  Array.isArray(prop) ? prop[0] : prop

@@ -1,6 +1,12 @@
 'use client'
 
-import { useEffect, useCallback, useRef, type FC } from 'react'
+import {
+  useEffect,
+  useCallback,
+  useRef,
+  type FC,
+  type DOMAttributes,
+} from 'react'
 import {
   Modal,
   ModalContent,
@@ -10,8 +16,8 @@ import {
   Button,
   Link,
 } from '@nextui-org/react'
-import { useStore } from '@/store'
 import clsx from 'clsx'
+import { useStore } from '@/store'
 import { SuccessProcessingEvent, type DowloadData } from '@/lib/types'
 import {
   getDownloadData,
@@ -19,6 +25,8 @@ import {
   getFormattedFileSize,
   buildDownloadUrl,
   calculateFileHeight,
+  calculateFileWidth,
+  getFirst,
 } from '@/lib/utils'
 import { useImmer } from 'use-immer'
 import { Slider } from '@nextui-org/react'
@@ -30,6 +38,8 @@ import { X, Plus } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { getDropZoneAcceptFromFormats } from '@/lib/utils'
 import { useApiRequest } from '@/hooks/useApiRequest'
+import { QualitySlider } from '@/components/ProcessingModal/QualitySlider'
+import { ResizeSlider } from '@/components/ProcessingModal/ResizeSlider'
 
 type Thumbnail = {
   fileName: string
@@ -65,6 +75,13 @@ export const ProcessingModal: FC<Props> = ({
   const format = useStore(state => state.format)
   const { addFileToJob, deleteFileFromJob } = useApiRequest()
   const fileWasRemoved = useRef<boolean>(false)
+  const [uploadedFileToQualityMap, setUploadedFileToQualityMap] = useImmer<
+    Record<string, number>
+  >({})
+  const [uploadedFileToWidthMap, setUploadedFileToWidthMap] = useImmer<
+    // originalWidth, originalHeight, width, height
+    Record<string, [number, number, number, number]>
+  >({})
 
   const onDrop = useCallback(
     (files: File[]) => {
@@ -163,7 +180,7 @@ export const ProcessingModal: FC<Props> = ({
     } else {
       fn(uploadedFiles[uploadedFiles.length - 1], uploadedFiles.length - 1)
 
-      if (scrollableRef.current) {
+      if (scrollableRef.current && currentJob.files.length) {
         const el = scrollableRef.current
         el.scroll({ top: el.scrollHeight, behavior: 'smooth' })
       }
@@ -183,6 +200,31 @@ export const ProcessingModal: FC<Props> = ({
     }
   }, [lastProcessingEvent])
 
+  useEffect(() => {
+    uploadedFiles.forEach(file => {
+      if (!uploadedFileToQualityMap.hasOwnProperty(file.name)) {
+        setUploadedFileToQualityMap(draft => {
+          draft[file.name] = DEFAULT_IMAGE_QUALITY
+        })
+      }
+    })
+  }, [uploadedFiles])
+
+  useEffect(() => {
+    currentJob.files.forEach(file => {
+      if (!uploadedFileToWidthMap.hasOwnProperty(file.sourceFile)) {
+        setUploadedFileToWidthMap(draft => {
+          draft[file.sourceFile] = [
+            file.originalWidth,
+            file.originalHeight,
+            file.originalWidth,
+            file.originalHeight,
+          ]
+        })
+      }
+    })
+  }, [currentJob.files])
+
   return (
     <Modal
       backdrop='blur'
@@ -199,7 +241,7 @@ export const ProcessingModal: FC<Props> = ({
       }}
     >
       <ModalContent>
-        {_onClose => (
+        {() => (
           <ModalBody>
             <div className='flex flex-col align-center m-6 mb-0 p-6 bg-zinc-800 rounded-xl shadow-md bg-dotted border border-zinc-700'>
               <div className='thumbnails grid justify-items-center justify-center gap-4 grid-cols-[repeat(5,_128px)]'>
@@ -264,6 +306,7 @@ export const ProcessingModal: FC<Props> = ({
                     isIconOnly
                     className='h-32 w-32 bg-zinc-700'
                     onPress={e => originalDropZoneOnClick?.(e as never)}
+                    disabled={isDownloadAllDisabled}
                   >
                     <Plus size='40' />
                   </Button>
@@ -286,13 +329,14 @@ export const ProcessingModal: FC<Props> = ({
               className='max-h-[50vh] overflow-x-hidden p-6 pt-0 mt-2'
               ref={scrollableRef}
             >
-              {uploadedFiles.map((_, idx) => {
+              {uploadedFiles.map((u, idx) => {
                 const file = currentJob.files[idx]
                 return file ? (
                   <div className='w-full mt-6' key={file.fileId}>
-                    <div className='flex justify-end w-5/6 mb-1'>
+                    <div className='flex justify-end w-4/5 mb-1'>
                       <div className='text-sm overflow-x-hidden whitespace-nowrap text-ellipsis'>
-                        {file.sourceFile}{' '}
+                        {file.sourceFile}
+                        {' | '}
                         {getFormattedFileSize(+file.sourceFileSize)} {'->'}{' '}
                         {getFormattedFileSize(+file.targetFileSize)} (
                         {getStringifiedConversionRate(
@@ -303,7 +347,7 @@ export const ProcessingModal: FC<Props> = ({
                       </div>
                     </div>
                     <div className='flex'>
-                      <div className='w-5/6 border border-zinc-700 rounded-xl overflow-hidden'>
+                      <div className='w-4/5 border border-zinc-700 rounded-xl overflow-hidden'>
                         <Comparator
                           sourceUrl={buildDownloadUrl(
                             currentJob.id!,
@@ -316,7 +360,7 @@ export const ProcessingModal: FC<Props> = ({
                           originalWidth={file.originalWidth}
                         />
                       </div>
-                      <div className='w-1/6'>
+                      <div className='w-1/5'>
                         <div className='ml-4'>
                           <div className='flex justify-between text-sm'>
                             Format
@@ -335,36 +379,51 @@ export const ProcessingModal: FC<Props> = ({
                           </div>
                           <div className='mt-6'>
                             <div className='flex items-center'>
-                              <Slider
-                                label='Quality'
-                                minValue={10}
-                                maxValue={100}
-                                step={1}
-                                className='w-[140px]'
-                                defaultValue={DEFAULT_IMAGE_QUALITY}
-                                size='sm'
-                                color='secondary'
-                                onChangeEnd={quality => {
-                                  !Array.isArray(quality) &&
-                                    onChangeFileProperties(file, { quality })
-                                }}
+                              <QualitySlider
+                                value={uploadedFileToQualityMap[u.name]}
+                                min={10}
+                                max={100}
                                 isDisabled={isDownloadByIdxDisabled(idx)}
+                                onChange={quality =>
+                                  setUploadedFileToQualityMap(draft => {
+                                    draft[u.name] = getFirst(quality)
+                                  })
+                                }
+                                onChangeEnd={quality =>
+                                  onChangeFileProperties(file, {
+                                    quality: getFirst(quality),
+                                  })
+                                }
+                                onInputChange={quality => {
+                                  onChangeFileProperties(file, {
+                                    quality,
+                                  })
+                                  setUploadedFileToQualityMap(draft => {
+                                    draft[u.name] = quality
+                                  })
+                                }}
                               />
                             </div>
                           </div>
                           <div className='mt-4'>
                             <div className='flex items-center'>
-                              <Slider
-                                label='Resize'
-                                minValue={10}
-                                maxValue={file.originalWidth}
-                                step={1}
-                                className='w-[140px]'
-                                defaultValue={file.width}
-                                size='sm'
-                                color='secondary'
-                                onChangeEnd={width => {
-                                  if (Array.isArray(width)) return
+                              <ResizeSlider
+                                value={uploadedFileToWidthMap[u.name]?.[2]}
+                                value2={uploadedFileToWidthMap[u.name]?.[3]}
+                                min={10}
+                                max={uploadedFileToWidthMap[u.name]?.[0]}
+                                isDisabled={isDownloadByIdxDisabled(idx)}
+                                onChange={width =>
+                                  setUploadedFileToWidthMap(draft => {
+                                    draft[u.name][2] = getFirst(width)
+                                    draft[u.name][3] = calculateFileHeight(
+                                      file,
+                                      getFirst(width)
+                                    )
+                                  })
+                                }
+                                onChangeEnd={w => {
+                                  const width = getFirst(w)
                                   const height = calculateFileHeight(
                                     file,
                                     width
@@ -374,13 +433,25 @@ export const ProcessingModal: FC<Props> = ({
                                     height,
                                   })
                                 }}
-                                getValue={width =>
-                                  `${width}x${calculateFileHeight(
-                                    file,
-                                    width as number
-                                  )}`
-                                }
-                                isDisabled={isDownloadByIdxDisabled(idx)}
+                                onInputChange={value => {
+                                  let width = 0
+                                  let height = 0
+                                  if (value > 0) {
+                                    width = value
+                                    height = calculateFileHeight(file, width)
+                                  } else {
+                                    height = Math.abs(value)
+                                    width = calculateFileWidth(file, height)
+                                  }
+                                  onChangeFileProperties(file, {
+                                    width,
+                                    height,
+                                  })
+                                  setUploadedFileToWidthMap(draft => {
+                                    draft[u.name][2] = width
+                                    draft[u.name][3] = height
+                                  })
+                                }}
                               />
                             </div>
                           </div>

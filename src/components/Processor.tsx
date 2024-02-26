@@ -5,7 +5,7 @@ import { Dropzone } from '@/components/Dropzone'
 import { type SuccessProcessingEvent, type Event } from '@/lib/types'
 import { useApiRequest } from '@/hooks/useApiRequest'
 import { useStore } from '@/store'
-import { ProcessingModal } from '@/components/ProcessingModal'
+import { ProcessingModal } from '@/components/ProcessingModal/ProcessingModal'
 import useWebSocket from 'react-use-websocket'
 
 export const Processor = () => {
