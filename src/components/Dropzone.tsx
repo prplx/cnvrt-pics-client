@@ -10,10 +10,9 @@ import { useStore } from '@/store'
 import { DEFAULT_IMAGE_QUALITY } from '@/lib/constants'
 import { FormatSelector } from '@/components/FormatSelector'
 import { getDropZoneAcceptFromFormats } from '@/lib/utils'
+import { toast } from 'react-toastify'
 
-type Props = {}
-
-export const Dropzone: FC<Props> = () => {
+export const Dropzone: FC = () => {
   const { processJob } = useApiRequest()
   const format = useStore(state => state.format)
   const setFormat = useStore(state => state.setFormat)
@@ -50,6 +49,10 @@ export const Dropzone: FC<Props> = () => {
     }
   }
   const onDrop = useCallback((files: File[]) => {
+    if (!files.length || files.length > 10) {
+      toast.error('Please upload between 1 and 10 images')
+      return
+    }
     setUploadedFiles(files)
   }, [])
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

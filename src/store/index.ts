@@ -85,7 +85,7 @@ export const useStore = create<State>()(
         set(state => {
           state.uploadedFiles.push(file)
         }),
-      reset: () => set(() => initialState),
+      reset: () => set(state => ({ ...initialState, format: state.format })),
       removeFile: file =>
         set(state => {
           state.uploadedFiles = state.uploadedFiles.filter(

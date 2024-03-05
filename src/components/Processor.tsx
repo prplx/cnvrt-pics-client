@@ -7,6 +7,7 @@ import { useApiRequest } from '@/hooks/useApiRequest'
 import { useStore } from '@/store'
 import { ProcessingModal } from '@/components/ProcessingModal/ProcessingModal'
 import useWebSocket from 'react-use-websocket'
+import { ToastContainer } from 'react-toastify'
 
 export const Processor = () => {
   const { processFile, archiveJob, getWebsocketUrl } = useApiRequest()
@@ -110,6 +111,12 @@ export const Processor = () => {
         isDownloadingAll={isDownloadingAll}
         onDownloadAll={onDownloadAll}
         onChangeFileProperties={onChangeFileProperties}
+      />
+      <ToastContainer
+        position='top-center'
+        autoClose={5000}
+        closeOnClick
+        theme='dark'
       />
     </div>
   )
