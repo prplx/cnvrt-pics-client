@@ -38,8 +38,9 @@ export const Dropzone: FC = () => {
     try {
       data = await processJob(formData, queryParams)
     } catch (error) {
-      // TODO: handle error
-      console.error(error)
+      toast.error('An error occurred while processing the images', {
+        closeButton: false,
+      })
     }
 
     if (!data) return
@@ -50,7 +51,9 @@ export const Dropzone: FC = () => {
   }
   const onDrop = useCallback((files: File[]) => {
     if (!files.length || files.length > 10) {
-      toast.error('Please upload between 1 and 10 images')
+      toast.error('Please upload up to 10 images', {
+        closeButton: false,
+      })
       return
     }
     setUploadedFiles(files)
@@ -99,7 +102,7 @@ export const Dropzone: FC = () => {
           <FormatSelector
             value={format}
             trigger={(format: Format) => (
-              <span className='border-b-1 border-dashed'>
+              <span className='border-b-1 border-dashed cursor-pointer'>
                 {format.toUpperCase()}
               </span>
             )}

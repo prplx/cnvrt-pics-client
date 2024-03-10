@@ -43,13 +43,13 @@ export const useApiRequest = () => {
     jobId: string | number,
     body: FormData,
     queryParams: URLSearchParams
-  ): Promise<{ job_id: number }> => {
+  ): Promise<Response> => {
     const response = makeResponse(`/process/${jobId}?${queryParams}`, {
       method: 'PUT',
       body,
     })
 
-    return (await response).json()
+    return response
   }
 
   const deleteFileFromJob = async (

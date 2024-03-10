@@ -1,12 +1,6 @@
 'use client'
 
-import {
-  useEffect,
-  useCallback,
-  useRef,
-  type FC,
-  type DOMAttributes,
-} from 'react'
+import { useEffect, useCallback, useRef, type FC } from 'react'
 import {
   Modal,
   ModalContent,
@@ -16,7 +10,6 @@ import {
   Button,
   Link,
 } from '@nextui-org/react'
-import clsx from 'clsx'
 import { useStore } from '@/store'
 import { SuccessProcessingEvent, type DowloadData } from '@/lib/types'
 import {
@@ -29,17 +22,18 @@ import {
   getFirst,
 } from '@/lib/utils'
 import { useImmer } from 'use-immer'
-import { Slider } from '@nextui-org/react'
 import { Comparator } from '@/components/Comparator'
 import { DEFAULT_IMAGE_QUALITY } from '@/lib/constants'
 import { FormatSelector } from '@/components/FormatSelector'
 import { Format } from '@/lib/types'
-import { X, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { getDropZoneAcceptFromFormats } from '@/lib/utils'
 import { useApiRequest } from '@/hooks/useApiRequest'
-import { QualitySlider } from '@/components/ProcessingModal/QualitySlider'
-import { ResizeSlider } from '@/components/ProcessingModal/ResizeSlider'
+import { QualitySlider } from './QualitySlider'
+import { ResizeSlider } from './ResizeSlider'
+import { Thumbnail } from './Thumbnail'
+import { toast } from 'react-toastify'
 
 type Thumbnail = {
   fileName: string
@@ -75,6 +69,8 @@ export const ProcessingModal: FC<Props> = ({
   const format = useStore(state => state.format)
   const { addFileToJob, deleteFileFromJob } = useApiRequest()
   const fileWasRemoved = useRef<boolean>(false)
+  const setFilePending = useStore(state => state.setFilePending)
+
   const [uploadedFileToQualityMap, setUploadedFileToQualityMap] = useImmer<
     Record<string, number>
   >({})
@@ -86,7 +82,9 @@ export const ProcessingModal: FC<Props> = ({
   const onDrop = useCallback(
     (files: File[]) => {
       if (uploadedFiles.find(f => f.name === files[0].name)) {
-        // TODO: show toast error message here
+        toast.error('File with the same name has already been uploaded', {
+          closeButton: false,
+        })
         return
       } else {
         if (!currentJob.id) return
@@ -99,8 +97,10 @@ export const ProcessingModal: FC<Props> = ({
           quality: DEFAULT_IMAGE_QUALITY.toString(),
         })
         formData.append('image', new Blob([file]), file.name)
-        addFileToJob(currentJob.id, formData, queryParams).catch(error => {
-          // TODO: show toast error message here
+        addFileToJob(currentJob.id, formData, queryParams).catch(err => {
+          toast.error('An error occurred while adding the image to the job', {
+            closeButton: false,
+          })
         })
       }
     },
@@ -111,6 +111,7 @@ export const ProcessingModal: FC<Props> = ({
     if (!currentJob.id) return
     const file = currentJob.files.find(f => f.sourceFile === fileName)
     if (!file) return
+    setFilePending(file, true)
     fileWasRemoved.current = true
     const queryParams = new URLSearchParams({
       file_id: String(file.fileId),
@@ -120,8 +121,10 @@ export const ProcessingModal: FC<Props> = ({
         removeFileFromJob(file)
         setThumbnails(thumbnails.filter(th => th.fileName !== fileName))
       })
-      .catch(error => {
-        // TODO: show toast error message here
+      .catch(() => {
+        toast.error('An error occurred while removing the image from the job', {
+          closeButton: false,
+        })
       })
   }
 
@@ -247,47 +250,25 @@ export const ProcessingModal: FC<Props> = ({
               <div className='thumbnails grid justify-items-center justify-center gap-4 grid-cols-[repeat(5,_128px)]'>
                 {uploadedFiles.map((file, idx) => (
                   <div key={file.name}>
-                    <Skeleton
-                      className='rounded overflow-visible'
-                      isLoaded={!!thumbnails[idx]?.data}
-                    >
-                      <div className='relative'>
-                        {currentJob.files.length > 1 && (
-                          <Button
-                            isIconOnly
-                            color='secondary'
-                            className='absolute -top-3 -right-3 z-20 rounded-full w-7 h-7 min-w-[unset] drop-shadow'
-                            onPress={() => onDeleteFileFromJob(file.name)}
-                          >
-                            <X size='16' />
-                          </Button>
-                        )}
-                        <div className='relative rounded-md overflow-hidden h-32 w-32 border border-zinc-600'>
-                          <div className='text-4xl text-white relative z-10 [text-shadow:_1px_1px_1px_rgb(0_0_0_/_50%)] flex items-center justify-center w-full h-full bg-black/30'>
-                            {currentJob.files[idx] &&
-                              getStringifiedConversionRate(
-                                +currentJob.files[idx].sourceFileSize,
-                                +currentJob.files[idx].targetFileSize
-                              )}
-                          </div>
-                          <img
-                            src={thumbnails[idx]?.data}
-                            className={clsx(
-                              'absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 min-h-full min-w-full max-w-[unset] max-h-[unset]',
-                              {
-                                'h-full':
-                                  thumbnails[idx]?.width >=
-                                  thumbnails[idx]?.height,
-                                'w-full':
-                                  thumbnails[idx]?.height >
-                                  thumbnails[idx]?.width,
-                              }
-                            )}
-                            alt={`thumbnail ${idx}`}
-                          />
-                        </div>
-                      </div>
-                    </Skeleton>
+                    <Thumbnail
+                      isLoaded={Boolean(thumbnails[idx]?.data)}
+                      imageSrc={thumbnails[idx]?.data}
+                      text={
+                        currentJob.files[idx] &&
+                        getStringifiedConversionRate(
+                          +currentJob.files[idx].sourceFileSize,
+                          +currentJob.files[idx].targetFileSize
+                        )
+                      }
+                      imageHFull={
+                        thumbnails[idx]?.width >= thumbnails[idx]?.height
+                      }
+                      imageWFull={
+                        thumbnails[idx]?.height > thumbnails[idx]?.width
+                      }
+                      isCloseButton={currentJob.files.length > 1}
+                      onClose={() => onDeleteFileFromJob(file.name)}
+                    />
                     <Button
                       disabled={isDownloadByIdxDisabled(idx)}
                       className='w-full mt-2'
@@ -461,10 +442,10 @@ export const ProcessingModal: FC<Props> = ({
                   </div>
                 ) : (
                   <div className='flex mt-6' key={idx}>
-                    <Skeleton className='w-5/6 h-72 rounded-xl'>
+                    <Skeleton className='w-4/5 h-72 rounded-xl'>
                       <div />
                     </Skeleton>
-                    <Skeleton className='w-1/6 h-72 ml-4 rounded-xl'>
+                    <Skeleton className='w-1/5 h-72 ml-4 rounded-xl'>
                       <div />
                     </Skeleton>
                   </div>

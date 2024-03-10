@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --toastify-color-error: #9353d3 !important;
+}
+
 .thumbnails:has(> :nth-child(1)) {
   grid-template-columns: repeat(1, 8rem);
 }

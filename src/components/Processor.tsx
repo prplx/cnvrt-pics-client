@@ -7,7 +7,7 @@ import { useApiRequest } from '@/hooks/useApiRequest'
 import { useStore } from '@/store'
 import { ProcessingModal } from '@/components/ProcessingModal/ProcessingModal'
 import useWebSocket from 'react-use-websocket'
-import { ToastContainer } from 'react-toastify'
+import { toast } from 'react-toastify'
 
 export const Processor = () => {
   const { processFile, archiveJob, getWebsocketUrl } = useApiRequest()
@@ -45,7 +45,9 @@ export const Processor = () => {
     try {
       await processFile(jobId, queryParams)
     } catch (error) {
-      console.error(error)
+      toast.error('An error occurred while processing the image', {
+        closeButton: false,
+      })
     } finally {
       setFilePending(file, false)
     }
@@ -59,8 +61,10 @@ export const Processor = () => {
     try {
       await archiveJob(jobId)
     } catch (error) {
-      // TODO: handle error
-      console.error(error)
+      toast.error('An error occurred while downloading the images', {
+        closeButton: false,
+      })
+      setIsDownloadingAll(false)
     }
   }
 
@@ -82,15 +86,22 @@ export const Processor = () => {
       case 'processing':
         if (evt.event === 'success') {
           onSuccess(jobId, evt)
+        } else if (evt.event === 'error') {
+          toast.error('An error occurred while processing the image', {
+            closeButton: false,
+          })
         }
         break
-      // TODO: handle error
       case 'archiving':
         if (evt.event === 'success') {
           onArchiveDownload(evt.path)
+        } else if (evt.event === 'error') {
+          toast.error('An error occurred while downloading the images', {
+            closeButton: false,
+          })
+          setIsDownloadingAll(false)
         }
         break
-      // TODO: handle error
       case 'flushing':
         if (evt.event === 'success') {
           window?.location.reload()
@@ -111,12 +122,6 @@ export const Processor = () => {
         isDownloadingAll={isDownloadingAll}
         onDownloadAll={onDownloadAll}
         onChangeFileProperties={onChangeFileProperties}
-      />
-      <ToastContainer
-        position='top-center'
-        autoClose={5000}
-        closeOnClick
-        theme='dark'
       />
     </div>
   )
