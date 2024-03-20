@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'cnvrt.pics',
-  description: 'Convert your images easily',
+  description: 'Convert, resize, optimize your images easily',
 }
 
 export default function RootLayout({
@@ -27,13 +27,6 @@ export default function RootLayout({
             </h1>
           </div>
           <div className='overlay fixed right-0 bottom-0 min-w-full min-h-full z-[1] backdrop-blur-2xl'></div>
-          {/* <video
-            src='https://d2n07m8t3xer11.cloudfront.net/Blue+Shiny+Space+Fire+Looping+Animation.m3u8'
-            className='fixed right-0 bottom-0 min-w-full min-h-full object-fill z-0'
-            loop
-            autoPlay
-            muted
-          /> */}
           {children}
         </Providers>
         <Toast />

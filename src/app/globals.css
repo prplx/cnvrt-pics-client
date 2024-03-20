@@ -50,5 +50,5 @@
 }
 
 .__rcs-handle-button > div {
-  color: #9353d3;
+  color: var(--toastify-color-error);
 }

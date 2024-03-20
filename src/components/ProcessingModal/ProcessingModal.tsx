@@ -348,7 +348,7 @@ export const ProcessingModal: FC<Props> = ({
                             <FormatSelector
                               value={file.format}
                               trigger={(format: Format) => (
-                                <span className='border-b-1 border-dashed'>
+                                <span className='border-b-1 border-dashed cursor-pointer'>
                                   {format.toUpperCase()}
                                 </span>
                               )}
