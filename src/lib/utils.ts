@@ -1,6 +1,8 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import fileTypeChecker from 'file-type-checker'
 import { useStore } from '@/store'
+
 import { type SuccessProcessingEvent, Format } from './types'
 
 export function cn(...inputs: ClassValue[]) {
@@ -101,3 +103,23 @@ export const getDropZoneAcceptFromFormats = (): Record<string, []> =>
 
 export const getFirst = <T>(prop: T): T extends (infer U)[] ? U : T =>
   Array.isArray(prop) ? prop[0] : prop
+
+export const areFilesValid = async (files: File[]): Promise<boolean> => {
+  try {
+    const arrayBuffers = await Promise.all(files.map(fileToArrayBuffer))
+    return arrayBuffers.every(arrayBuffer =>
+      fileTypeChecker.validateFileType(arrayBuffer, Object.values(Format))
+    )
+  } catch (error) {
+    return false
+  }
+}
+
+const fileToArrayBuffer = (file: File): Promise<ArrayBuffer> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as ArrayBuffer)
+    reader.onerror = reject
+    reader.readAsArrayBuffer(file)
+  })
+}

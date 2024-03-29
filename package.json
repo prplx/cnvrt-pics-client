@@ -21,6 +21,7 @@
     "clsx": "^2.0.0",
     "eslint": "8.47.0",
     "eslint-config-next": "14.0.4",
+    "file-type-checker": "^1.0.9",
     "firebase": "^10.7.1",
     "framer-motion": "^10.16.16",
     "immer": "^10.0.3",

@@ -1,6 +1,12 @@
 'use client'
 
-import { useEffect, useCallback, useRef, type FC } from 'react'
+import {
+  useEffect,
+  useCallback,
+  useRef,
+  MouseEvent as MouseEventReact,
+  type FC,
+} from 'react'
 import {
   Modal,
   ModalContent,
@@ -20,6 +26,7 @@ import {
   calculateFileHeight,
   calculateFileWidth,
   getFirst,
+  areFilesValid,
 } from '@/lib/utils'
 import { useImmer } from 'use-immer'
 import { Comparator } from '@/components/Comparator'
@@ -88,19 +95,36 @@ export const ProcessingModal: FC<Props> = ({
         return
       } else {
         if (!currentJob.id) return
-        fileWasRemoved.current = false
-        const file = files[0]
-        addToUploadedFiles(file)
-        const formData = new FormData()
-        const queryParams = new URLSearchParams({
-          format,
-          quality: DEFAULT_IMAGE_QUALITY.toString(),
-        })
-        formData.append('image', new Blob([file]), file.name)
-        addFileToJob(currentJob.id, formData, queryParams).catch(err => {
-          toast.error('An error occurred while adding the image to the job', {
-            closeButton: false,
-          })
+        areFilesValid(files).then(valid => {
+          if (!valid) {
+            toast.error(
+              `Only ${Object.values(Format).join(
+                ', '
+              )} file types are supported`,
+              {
+                closeButton: false,
+              }
+            )
+            return
+          } else {
+            fileWasRemoved.current = false
+            const file = files[0]
+            addToUploadedFiles(file)
+            const formData = new FormData()
+            const queryParams = new URLSearchParams({
+              format,
+              quality: DEFAULT_IMAGE_QUALITY.toString(),
+            })
+            formData.append('image', new Blob([file]), file.name)
+            addFileToJob(currentJob.id!, formData, queryParams).catch(() => {
+              toast.error(
+                'An error occurred while adding the image to the job',
+                {
+                  closeButton: false,
+                }
+              )
+            })
+          }
         })
       }
     },
@@ -132,6 +156,7 @@ export const ProcessingModal: FC<Props> = ({
     onDrop,
     accept: getDropZoneAcceptFromFormats(),
     maxFiles: 1,
+    multiple: false,
   })
   const originalDropZoneOnClick = getRootProps().onClick
 
@@ -282,12 +307,20 @@ export const ProcessingModal: FC<Props> = ({
                     </Button>
                   </div>
                 ))}
-                {uploadedFiles.length < 10 && (
+                {uploadedFiles.length <
+                  parseInt(
+                    process.env.NEXT_PUBLIC_MAX_FILE_COUNT ?? '',
+                    10
+                  ) && (
                   <Button
                     isIconOnly
                     className='h-32 w-32 bg-zinc-700'
-                    onPress={e => originalDropZoneOnClick?.(e as never)}
-                    disabled={isDownloadAllDisabled}
+                    onPress={e =>
+                      originalDropZoneOnClick?.(
+                        e as unknown as MouseEventReact<HTMLElement, MouseEvent>
+                      )
+                    }
+                    isDisabled={isDownloadAllDisabled}
                   >
                     <Plus size='40' />
                   </Button>

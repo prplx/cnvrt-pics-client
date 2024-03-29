@@ -9,7 +9,7 @@ import { useApiRequest } from '@/hooks/useApiRequest'
 import { useStore } from '@/store'
 import { DEFAULT_IMAGE_QUALITY } from '@/lib/constants'
 import { FormatSelector } from '@/components/FormatSelector'
-import { getDropZoneAcceptFromFormats } from '@/lib/utils'
+import { getDropZoneAcceptFromFormats, areFilesValid } from '@/lib/utils'
 import { toast } from 'react-toastify'
 
 export const Dropzone: FC = () => {
@@ -50,13 +50,31 @@ export const Dropzone: FC = () => {
     }
   }
   const onDrop = useCallback((files: File[]) => {
-    if (!files.length || files.length > 10) {
-      toast.error('Please upload up to 10 images', {
-        closeButton: false,
-      })
+    if (
+      !files.length ||
+      files.length > parseInt(process.env.NEXT_PUBLIC_MAX_FILE_COUNT ?? '', 10)
+    ) {
+      toast.error(
+        `Please upload up to ${process.env.NEXT_PUBLIC_MAX_FILE_COUNT} images`,
+        {
+          closeButton: false,
+        }
+      )
       return
     }
-    setUploadedFiles(files)
+    areFilesValid(files).then(valid => {
+      if (!valid) {
+        toast.error(
+          `Only ${Object.values(Format).join(', ')} file types are supported`,
+          {
+            closeButton: false,
+          }
+        )
+        return
+      } else {
+        setUploadedFiles(files)
+      }
+    })
   }, [])
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
