@@ -4,6 +4,7 @@ import type { FC } from 'react'
 import { FirebaseAppCheckProvider } from '@/providers/FirebaseAppCheckProvider'
 import { FirebaseAppProvider } from 'reactfire'
 import { NextUIProvider } from '@nextui-org/react'
+import Script from 'next/script'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -20,10 +21,19 @@ type Props = {
 
 export const Providers: FC<Props> = ({ children }) => {
   return (
-    <FirebaseAppProvider firebaseConfig={firebaseConfig}>
-      <FirebaseAppCheckProvider>
-        <NextUIProvider>{children}</NextUIProvider>
-      </FirebaseAppCheckProvider>
-    </FirebaseAppProvider>
+    <>
+      <FirebaseAppProvider firebaseConfig={firebaseConfig}>
+        <FirebaseAppCheckProvider>
+          <NextUIProvider>{children}</NextUIProvider>
+        </FirebaseAppCheckProvider>
+      </FirebaseAppProvider>
+      <Script
+        src='https://buttons.github.io/buttons.js'
+        strategy='lazyOnload'
+        onLoad={() => {
+          console.log('Github button loaded')
+        }}
+      ></Script>
+    </>
   )
 }

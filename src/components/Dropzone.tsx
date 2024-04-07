@@ -87,11 +87,11 @@ export const Dropzone: FC = () => {
   }, [uploadedFiles])
 
   return (
-    <div className='flex flex-col items-center mx-auto bg-slate-800/50 text-white rounded-3xl w-3/4 p-10'>
+    <div className='flex flex-col items-center mx-auto bg-slate-900/60 text-white rounded-3xl p-10 shadow-md'>
       <div
         {...getRootProps()}
         onClick={undefined}
-        className='w-full h-60 flex flex-col justify-center items-center mx-auto border rounded-xl border-dashed border-slate-400'
+        className='w-full h-60 flex flex-col justify-center items-center mx-auto border rounded-xl border-dashed border-slate-500'
       >
         <input {...getInputProps()} />
         <div className='text-purple mb-2'>
@@ -100,9 +100,9 @@ export const Dropzone: FC = () => {
         {isDragActive ? (
           <p>Drop the images here ...</p>
         ) : (
-          <p>Drag&drop images here</p>
+          <p>Drag & drop images here</p>
         )}
-        <span className='text-slate-500'>or</span>
+        <span className='text-white/50'>or</span>
         <Button
           variant='flat'
           size='sm'
@@ -114,7 +114,7 @@ export const Dropzone: FC = () => {
           Choose files
         </Button>
         <div className='mt-4'>
-          <span className='text-slate-500'>
+          <span className='text-white/50'>
             Your default target format is &nbsp;
           </span>
           <FormatSelector

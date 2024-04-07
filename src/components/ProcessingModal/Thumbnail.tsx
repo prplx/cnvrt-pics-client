@@ -10,6 +10,7 @@ type Props = {
   imageHFull: boolean
   imageWFull: boolean
   isCloseButton: boolean
+  isDisabled?: boolean
   onClose: () => void
 }
 
@@ -20,6 +21,7 @@ export const Thumbnail: FC<Props> = ({
   imageHFull,
   imageWFull,
   isCloseButton,
+  isDisabled,
   onClose,
 }) => {
   const textContainerRef = useRef<HTMLDivElement | null>(null)
@@ -54,6 +56,7 @@ export const Thumbnail: FC<Props> = ({
             color='secondary'
             className='absolute -top-3 -right-3 z-20 rounded-full w-7 h-7 min-w-[unset] drop-shadow'
             onPress={onClose}
+            isDisabled={isDisabled}
           >
             <X size='16' />
           </Button>

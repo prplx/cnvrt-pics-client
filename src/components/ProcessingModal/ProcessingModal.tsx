@@ -293,6 +293,7 @@ export const ProcessingModal: FC<Props> = ({
                       }
                       isCloseButton={currentJob.files.length > 1}
                       onClose={() => onDeleteFileFromJob(file.name)}
+                      isDisabled={isDownloadByIdxDisabled(idx)}
                     />
                     <Button
                       disabled={isDownloadByIdxDisabled(idx)}

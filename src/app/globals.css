@@ -6,6 +6,25 @@
   --toastify-color-error: #9353d3 !important;
 }
 
+.body {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-image: url('/bg.avif');
+}
+
+@supports not (background-image: url('/bg.avif')) {
+  .body {
+    background-image: url('/bg.webp'); /* Fallback to WebP for browsers that don't support AVIF */
+  }
+}
+
+@supports not (background-image: url('/bg.webp')) {
+  .body {
+    background-image: url('/bg.jpeg'); /* Fallback to PNG for browsers that don't support WebP */
+  }
+}
+
 .thumbnails:has(> :nth-child(1)) {
   grid-template-columns: repeat(1, 8rem);
 }
@@ -51,4 +70,10 @@
 
 .__rcs-handle-button > div {
   color: var(--toastify-color-error);
+}
+
+[data-overlay-container='true'] {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
