@@ -4,7 +4,7 @@ import { Format } from '@/lib/types'
 export default function Home() {
   return (
     <main className='container flex items-center z-[2] relative grow'>
-      <div className='m-auto -translate-y-[25%]'>
+      <div className='m-auto -translate-y-[20%]'>
         <div className='hero text-center'>
           <h1>
             <span className='text-purple text-8xl font-light'>
@@ -25,7 +25,7 @@ export default function Home() {
         </div>
         <div className='container mx-auto'>
           <Processor />
-          <div className='flex justify-center mt-8'>
+          {/* <div className='flex justify-center mt-8'>
             <a
               className='github-button z-100'
               href='https://github.com/orgs/cnvrt-pics/repositories'
@@ -36,7 +36,7 @@ export default function Home() {
             >
               Star
             </a>
-          </div>
+          </div> */}
         </div>
       </div>
     </main>

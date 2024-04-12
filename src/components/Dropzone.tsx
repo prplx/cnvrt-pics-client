@@ -11,6 +11,7 @@ import { DEFAULT_IMAGE_QUALITY } from '@/lib/constants'
 import { FormatSelector } from '@/components/FormatSelector'
 import { getDropZoneAcceptFromFormats, areFilesValid } from '@/lib/utils'
 import { toast } from 'react-toastify'
+import { Svg } from '@/components/Svg'
 
 export const Dropzone: FC = () => {
   const { processJob } = useApiRequest()
@@ -87,7 +88,8 @@ export const Dropzone: FC = () => {
   }, [uploadedFiles])
 
   return (
-    <div className='flex flex-col items-center mx-auto bg-slate-900/60 text-white rounded-3xl p-10 shadow-md'>
+    <div className='flex flex-col items-center mx-auto bg-slate-900/60 text-white rounded-3xl p-10 shadow-md relative'>
+      <Svg />
       <div
         {...getRootProps()}
         onClick={undefined}
