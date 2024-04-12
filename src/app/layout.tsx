@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Providers } from '@/components/Providers'
 import { Toast } from '@/components/Toast'
-import { Scripts } from '@/components/Scripts'
+import { GithubCorner } from '@/components/GithubCorner'
 import Image from 'next/image'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -37,8 +37,8 @@ export default function RootLayout({
           <div className='overlay fixed right-0 bottom-0 min-w-full min-h-full z-[1] backdrop-blur-2xl'></div>
           {children}
         </Providers>
-        <Scripts />
         <Toast />
+        <GithubCorner />
       </body>
     </html>
   )
