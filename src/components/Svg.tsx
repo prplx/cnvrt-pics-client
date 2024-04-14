@@ -3,7 +3,7 @@ export const Svg = () => (
     <svg
       xmlns='http://www.w3.org/2000/svg'
       viewBox='0 0 100 100'
-      className='absolute'
+      className='absolute z-[-1] hidden xl:block'
     >
       <defs>
         <linearGradient id='gradient5' x1='0%' y1='0%' x2='100%' y2='100%'>
@@ -15,28 +15,28 @@ export const Svg = () => (
     <svg
       xmlns='http://www.w3.org/2000/svg'
       viewBox='0 0 100 100'
-      className='absolute w-16 h-16 -top-[20rem] right-[1rem] opacity-70 z-[-1]'
+      className='absolute w-16 h-16 -top-[20rem] right-[1rem] opacity-70 z-[-1] hidden xl:block'
     >
       <circle cx='50' cy='50' r='50' fill='url(#gradient5)' />
     </svg>
     <svg
       xmlns='http://www.w3.org/2000/svg'
       viewBox='0 0 100 100'
-      className='absolute w-10 h-10 -top-[10rem] -left-[8rem] opacity-70 z-[-1]'
+      className='absolute w-10 h-10 -top-[10rem] -left-[8rem] opacity-70 z-[-1] hidden xl:block'
     >
       <circle cx='50' cy='50' r='50' fill='url(#gradient5)' />
     </svg>
     <svg
       xmlns='http://www.w3.org/2000/svg'
       viewBox='0 0 100 100'
-      className='absolute w-4 h-4 -top-[14rem] -right-[5rem] z-[-1]'
+      className='absolute w-4 h-4 -top-[14rem] -right-[5rem] z-[-1] hidden xl:block'
     >
       <circle cx='50' cy='50' r='50' fill='#FE5778' />
     </svg>
     <svg
       xmlns='http://www.w3.org/2000/svg'
       viewBox='0 0 100 100'
-      className='absolute w-6 h-6 top-[7rem] -left-[10rem] z-[-1]'
+      className='absolute w-6 h-6 top-[7rem] -left-[10rem] z-[-1] hidden xl:block'
     >
       <circle cx='50' cy='50' r='50' fill='#50C27D' />
     </svg>
@@ -44,7 +44,7 @@ export const Svg = () => (
       width='2400'
       height='1800'
       xmlns='http://www.w3.org/2000/svg'
-      className='absolute -translate-y-2/4 opacity-10 z-[-1] blur-[1px]'
+      className='absolute -translate-y-2/4 opacity-10 z-[-1] blur-[1px] hidden xl:block'
     >
       <g>
         <ellipse
@@ -64,7 +64,7 @@ export const Svg = () => (
       width='2400'
       height='1800'
       xmlns='http://www.w3.org/2000/svg'
-      className='absolute -translate-y-2/4 opacity-10 z-[-1] scale-[1.2] blur-[1px]'
+      className='absolute -translate-y-2/4 opacity-10 z-[-1] scale-[1.2] blur-[1px] hidden xl:block'
     >
       <g>
         <ellipse
@@ -86,7 +86,7 @@ export const Svg = () => (
       width='700'
       height='700'
       viewBox='638,346,700,700'
-      className='absolute scale-[0.45] -top-[32rem] -right-[16rem] z-[-1] blur-[1px] opacity-60'
+      className='absolute scale-[0.45] -top-[32rem] -right-[16rem] z-[-1] blur-[1px] opacity-60 hidden xl:block'
     >
       <g
         id='document'

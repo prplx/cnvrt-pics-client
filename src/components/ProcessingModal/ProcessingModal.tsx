@@ -265,13 +265,13 @@ export const ProcessingModal: FC<Props> = ({
         body: 'p-0 gap-0',
         base: 'overflow-y-visible',
         closeButton:
-          '-top-4 -right-4 text-block text-xl bg-purple hover:bg-purple/90',
+          'xl:-top-4 xl:-right-4 text-block text-xl bg-purple hover:bg-purple/90 ',
       }}
     >
       <ModalContent>
         {() => (
           <ModalBody>
-            <div className='flex flex-col align-center m-6 mb-0 p-6 bg-zinc-800 rounded-xl shadow-md bg-dotted border border-zinc-700'>
+            <div className='hidden xl:flex flex-col align-center m-6 mb-0 p-6 bg-zinc-800 rounded-xl shadow-md bg-dotted border border-zinc-700'>
               <div className='thumbnails grid justify-items-center justify-center gap-4 grid-cols-[repeat(5,_128px)]'>
                 {uploadedFiles.map((file, idx) => (
                   <div key={file.name}>
@@ -301,7 +301,7 @@ export const ProcessingModal: FC<Props> = ({
                       radius='sm'
                       isLoading={isDownloadByIdxDisabled(idx)}
                       as={Link}
-                      href={thumbnails[idx]?.downloadData?.url}
+                      href={`${thumbnails[idx]?.downloadData?.url}?download=${thumbnails[idx]?.downloadData?.fileName}`}
                       download={thumbnails[idx]?.downloadData?.fileName}
                     >
                       {!isDownloadByIdxDisabled(idx) && 'Download'}
@@ -315,7 +315,7 @@ export const ProcessingModal: FC<Props> = ({
                   ) && (
                   <Button
                     isIconOnly
-                    className='h-32 w-32 bg-zinc-700'
+                    className='h-32 w-32 bg-zinc-700 hidden xl:block'
                     onPress={e =>
                       originalDropZoneOnClick?.(
                         e as unknown as MouseEventReact<HTMLElement, MouseEvent>
@@ -341,14 +341,14 @@ export const ProcessingModal: FC<Props> = ({
               )}
             </div>
             <div
-              className='max-h-[50vh] overflow-x-hidden p-6 pt-0 mt-2'
+              className='xl:max-h-[50vh] overflow-x-hidden p-6 pt-0 mt-2'
               ref={scrollableRef}
             >
               {uploadedFiles.map((u, idx) => {
                 const file = currentJob.files[idx]
                 return file ? (
                   <div className='w-full mt-6' key={file.fileId}>
-                    <div className='flex justify-end w-4/5 mb-1'>
+                    <div className='flex xl:justify-end w-4/5 mb-1'>
                       <div className='text-sm overflow-x-hidden whitespace-nowrap text-ellipsis'>
                         {file.sourceFile}
                         {' | '}
@@ -361,8 +361,8 @@ export const ProcessingModal: FC<Props> = ({
                         )
                       </div>
                     </div>
-                    <div className='flex'>
-                      <div className='w-4/5 border border-zinc-700 rounded-xl overflow-hidden'>
+                    <div className='xl:flex'>
+                      <div className='xl:w-4/5 border border-zinc-700 rounded-xl overflow-hidden'>
                         <Comparator
                           sourceUrl={buildDownloadUrl(
                             currentJob.id!,
@@ -375,9 +375,9 @@ export const ProcessingModal: FC<Props> = ({
                           originalWidth={file.originalWidth}
                         />
                       </div>
-                      <div className='w-1/5'>
-                        <div className='ml-4'>
-                          <div className='flex justify-between text-sm'>
+                      <div className='xl:w-1/5'>
+                        <div className='xl:ml-4'>
+                          <div className='flex justify-between text-sm mt-6 xl:mt-0'>
                             Format
                             <FormatSelector
                               value={file.format}
@@ -470,16 +470,27 @@ export const ProcessingModal: FC<Props> = ({
                               />
                             </div>
                           </div>
+                          <Button
+                            disabled={isDownloadByIdxDisabled(idx)}
+                            className='w-full mt-8 xl:hidden'
+                            radius='sm'
+                            isLoading={isDownloadByIdxDisabled(idx)}
+                            as={Link}
+                            href={`${thumbnails[idx]?.downloadData?.url}?download=${thumbnails[idx]?.downloadData?.fileName}`}
+                            download={thumbnails[idx]?.downloadData?.fileName}
+                          >
+                            {!isDownloadByIdxDisabled(idx) && 'Download'}
+                          </Button>
                         </div>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className='flex mt-6' key={idx}>
-                    <Skeleton className='w-4/5 h-72 rounded-xl'>
+                  <div className='xl:flex mt-12 xl:mt-6' key={idx}>
+                    <Skeleton className='xl:w-4/5 h-72 rounded-xl'>
                       <div />
                     </Skeleton>
-                    <Skeleton className='w-1/5 h-72 ml-4 rounded-xl'>
+                    <Skeleton className='xl:w-1/5 h-72 mt-4 xl:mt-0 xl:ml-4 rounded-xl'>
                       <div />
                     </Skeleton>
                   </div>

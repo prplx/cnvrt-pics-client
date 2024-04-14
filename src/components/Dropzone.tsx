@@ -88,35 +88,37 @@ export const Dropzone: FC = () => {
   }, [uploadedFiles])
 
   return (
-    <div className='flex flex-col items-center mx-auto bg-slate-900/60 text-white rounded-3xl p-10 shadow-md relative'>
+    <div className='flex flex-col items-center mx-auto bg-slate-900/60 text-white rounded-3xl p-4 xl:p-10 shadow-md relative'>
       <Svg />
       <div
         {...getRootProps()}
-        onClick={undefined}
-        className='w-full h-60 flex flex-col justify-center items-center mx-auto border rounded-xl border-dashed border-slate-500'
+        className='w-full h-40 xl:h-60 flex flex-col justify-center items-center mx-auto border rounded-xl border-dashed border-slate-500'
       >
         <input {...getInputProps()} />
-        <div className='text-purple mb-2'>
+        <div className='text-purple mb-2 hidden xl:block'>
           <DownloadCloud size={32} />
         </div>
         {isDragActive ? (
-          <p>Drop the images here ...</p>
+          <p className='hidden xl:block'>Drop the images here ...</p>
         ) : (
-          <p>Drag & drop images here</p>
+          <p className='hidden xl:block'>Drag & drop images here</p>
         )}
-        <span className='text-white/50'>or</span>
+        <span className='text-white/50 hidden xl:inline'>or</span>
         <Button
           variant='flat'
           size='sm'
           radius='sm'
-          className='mt-2 text-white'
+          className='mt-2 text-white max-lg:w-[70%] max-lg:h-10'
           startContent={<Paperclip size={16} />}
           onPress={e => originalDropZoneOnClick?.(e as never)}
         >
           Choose files
         </Button>
-        <div className='mt-4'>
-          <span className='text-white/50'>
+        <div className='mt-6 xl:mt-4'>
+          <span className='inline xl:hidden text-white/50'>
+            Convert to &nbsp;
+          </span>
+          <span className='text-white/50 hidden xl:inline'>
             Your default target format is &nbsp;
           </span>
           <FormatSelector
