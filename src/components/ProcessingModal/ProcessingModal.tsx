@@ -315,7 +315,7 @@ export const ProcessingModal: FC<Props> = ({
                   ) && (
                   <Button
                     isIconOnly
-                    className='h-32 w-32 bg-zinc-700 hidden xl:block'
+                    className='h-32 w-32 bg-zinc-700 hidden xl:flex'
                     onPress={e =>
                       originalDropZoneOnClick?.(
                         e as unknown as MouseEventReact<HTMLElement, MouseEvent>
