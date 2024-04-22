@@ -4,7 +4,7 @@ import { Format } from '@/lib/types'
 export default function Home() {
   return (
     <main className='container flex items-center z-[2] relative mt-24 xl:mt-0 xl:grow'>
-      <div className='m-auto xl:-translate-y-[20%]'>
+      <div className='m-auto xl:-translate-y-[10%]'>
         <div className='hero text-center'>
           <h1>
             <span className='text-purple text-5xl xl:text-8xl font-light'>
