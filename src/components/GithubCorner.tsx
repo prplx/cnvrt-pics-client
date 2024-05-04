@@ -2,9 +2,9 @@ export const GithubCorner = () => {
   return (
     <>
       <a
-        href='https://github.com/orgs/cnvrt-pics/repositories'
+        href='https://github.com/prplx?tab=repositories&q=cnvrt&type=&language=&sort='
         className='github-corner'
-        aria-label='View source on GitHub'
+        aria-label='View source and star on GitHub'
         rel='noreferrer noopener nofollow'
       >
         <svg
