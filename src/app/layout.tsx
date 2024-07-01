@@ -5,12 +5,13 @@ import { Providers } from '@/components/Providers'
 import { Toast } from '@/components/Toast'
 import { GithubCorner } from '@/components/GithubCorner'
 import Image from 'next/image'
+import Script from 'next/script'
 import 'react-toastify/dist/ReactToastify.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'cnvrt.pics',
+  title: 'Convert your images easily | cnvrt.pics',
   description:
     'Convert, optimize, and resize images in seconds for free. Bulk mode is supported.',
 }
@@ -22,6 +23,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang='en' className='bg-black'>
+      <Script
+        src='https://plausible.kos.sh/js/script.js'
+        strategy='lazyOnload'
+        data-domain='cnvrt.pics'
+      />
       <body
         className={`${inter.className} overscroll-none flex flex-col h-screen body overflow-hidden`}
       >
