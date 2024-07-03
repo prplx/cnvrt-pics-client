@@ -8,11 +8,8 @@ const nextConfig = {
 
 // Make sure adding Sentry options is the last code to run before exporting
 module.exports = withSentryConfig(nextConfig, {
-  org: 'kos-19',
-  project: 'cnvrt',
-
-  // An auth token is required for uploading source maps.
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
   authToken: process.env.SENTRY_AUTH_TOKEN,
-
   silent: false, // Can be used to suppress logs
 })
