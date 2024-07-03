@@ -4,6 +4,7 @@ import type { FC } from 'react'
 import { FirebaseAppCheckProvider } from '@/providers/FirebaseAppCheckProvider'
 import { FirebaseAppProvider } from 'reactfire'
 import { NextUIProvider } from '@nextui-org/react'
+import { isProduction } from '@/lib/utils'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -19,13 +20,17 @@ type Props = {
 }
 
 export const Providers: FC<Props> = ({ children }) => {
-  return (
+  return isProduction() ? (
     <>
       <FirebaseAppProvider firebaseConfig={firebaseConfig}>
         <FirebaseAppCheckProvider>
           <NextUIProvider>{children}</NextUIProvider>
         </FirebaseAppCheckProvider>
       </FirebaseAppProvider>
+    </>
+  ) : (
+    <>
+      <NextUIProvider>{children}</NextUIProvider>
     </>
   )
 }

@@ -48,7 +48,6 @@ export const Processor = () => {
       toast.error('An error occurred while processing the image', {
         closeButton: false,
       })
-    } finally {
       setFilePending(file, false)
     }
   }

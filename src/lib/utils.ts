@@ -123,3 +123,5 @@ const fileToArrayBuffer = (file: File): Promise<ArrayBuffer> => {
     reader.readAsArrayBuffer(file)
   })
 }
+
+export const isProduction = () => process.env.NODE_ENV === 'production'
