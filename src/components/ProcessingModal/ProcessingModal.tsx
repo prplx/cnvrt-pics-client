@@ -41,6 +41,7 @@ import { QualitySlider } from './QualitySlider'
 import { ResizeSlider } from './ResizeSlider'
 import { Thumbnail } from './Thumbnail'
 import { toast } from 'react-toastify'
+import clsx from 'clsx'
 
 type Thumbnail = {
   fileName: string
@@ -377,7 +378,12 @@ export const ProcessingModal: FC<Props> = ({
                       </div>
                       <div className='xl:w-1/5'>
                         <div className='xl:ml-4'>
-                          <div className='flex justify-between text-sm mt-6 xl:mt-0'>
+                          <div
+                            className={clsx(
+                              'flex justify-between text-sm mt-6 xl:mt-0',
+                              isDownloadByIdxDisabled(idx) && 'opacity-disabled'
+                            )}
+                          >
                             Format
                             <FormatSelector
                               value={file.format}
