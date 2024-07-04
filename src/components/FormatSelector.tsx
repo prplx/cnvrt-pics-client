@@ -27,6 +27,7 @@ export const FormatSelector: FC<Props> = ({
         selectionMode='single'
         selectedKeys={[value]}
         onAction={key => onChange(key as Format)}
+        disabledKeys={!!isDisabled ? Object.values(Format) : []}
       >
         {Object.values(Format).map(format => (
           <DropdownItem key={format}>{format.toUpperCase()}</DropdownItem>
