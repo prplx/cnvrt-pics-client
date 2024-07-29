@@ -105,11 +105,15 @@ export const getFirst = <T>(prop: T): T extends (infer U)[] ? U : T =>
   Array.isArray(prop) ? prop[0] : prop
 
 export const areFilesValid = async (files: File[]): Promise<boolean> => {
+  const formats = Object.values(Format)
   try {
     const arrayBuffers = await Promise.all(files.map(fileToArrayBuffer))
-    return arrayBuffers.every(arrayBuffer =>
-      fileTypeChecker.validateFileType(arrayBuffer, Object.values(Format))
-    )
+    return arrayBuffers.every(arrayBuffer => {
+      return (
+        fileTypeChecker.validateFileType(arrayBuffer, formats) ||
+        isAvif(arrayBuffer)
+      )
+    })
   } catch (error) {
     return false
   }
@@ -125,3 +129,12 @@ const fileToArrayBuffer = (file: File): Promise<ArrayBuffer> => {
 }
 
 export const isProduction = () => process.env.NODE_ENV === 'production'
+
+const isAvif = (buffer: ArrayBuffer): boolean => {
+  const header = new Uint8Array(buffer).slice(4, 12)
+  return (
+    Array.from(header)
+      .map(hex => String.fromCharCode(hex))
+      .join('') === 'ftypavif'
+  )
+}
