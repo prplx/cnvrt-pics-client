@@ -47,6 +47,11 @@ export type ErrorArchivingEvent = {
   operation: 'archiving'
 }
 
+export type PingEvent = {
+  event: 'ping'
+  operation: 'keepalive'
+}
+
 export type SuccessFlushingEvent = {
   event: 'success'
   operation: 'flushing'
@@ -64,7 +69,7 @@ export type ArchivingEvent =
 
 export type FlushingEvent = SuccessFlushingEvent
 
-export type Event = ProcessingEvent | ArchivingEvent | FlushingEvent
+export type Event = ProcessingEvent | ArchivingEvent | FlushingEvent | PingEvent
 
 export enum Format {
   WEBP = 'webp',

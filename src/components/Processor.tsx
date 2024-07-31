@@ -19,7 +19,7 @@ export const Processor = () => {
     setCurrentJobFiles(jobId, event)
   }
   const [socketUrl, setSocketUrl] = useState<string | null>(null)
-  const { lastJsonMessage } = useWebSocket<Event>(socketUrl)
+  const { lastJsonMessage, sendJsonMessage } = useWebSocket<Event>(socketUrl)
   const [isDownloadingAll, setIsDownloadingAll] = useState(false)
 
   const onChangeFileProperties = async (
@@ -105,6 +105,9 @@ export const Processor = () => {
         if (evt.event === 'success') {
           window?.location.reload()
         }
+        break
+      case 'keepalive':
+        sendJsonMessage({ event: 'pong' })
         break
     }
   }, [lastJsonMessage])
