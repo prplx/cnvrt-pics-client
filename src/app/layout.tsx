@@ -1,11 +1,13 @@
-import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Providers } from '@/components/Providers'
 import { Toast } from '@/components/Toast'
 import { GithubCorner } from '@/components/GithubCorner'
+import { SentryCmp as Sentry } from '@/components/Sentry'
 import Image from 'next/image'
 import Script from 'next/script'
+
+import './globals.css'
 import 'react-toastify/dist/ReactToastify.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -46,6 +48,7 @@ export default function RootLayout({
         </Providers>
         <Toast />
         <GithubCorner />
+        <Sentry />
       </body>
     </html>
   )

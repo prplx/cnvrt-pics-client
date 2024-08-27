@@ -111,8 +111,7 @@ export const areFilesValid = async (files: File[]): Promise<boolean> => {
     return arrayBuffers.every(arrayBuffer => {
       return (
         fileTypeChecker.validateFileType(arrayBuffer, formats) ||
-        isAvif(arrayBuffer) ||
-        fileTypeChecker.isHEIC(arrayBuffer)
+        isAvif(arrayBuffer)
       )
     })
   } catch (error) {

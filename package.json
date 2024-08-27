@@ -8,27 +8,21 @@
     "start": "next start",
     "lint": "next lint"
   },
+  "module": "index.ts",
   "dependencies": {
     "@nextui-org/react": "^2.2.9",
     "@radix-ui/react-select": "^1.2.2",
     "@radix-ui/react-slider": "^1.1.2",
     "@radix-ui/react-slot": "^1.0.2",
-    "@sentry/nextjs": "^8.13.0",
-    "@types/node": "20.5.0",
-    "@types/react": "18.2.20",
-    "@types/react-dom": "18.2.7",
-    "autoprefixer": "10.4.15",
+    "@sentry/react": "^8.27.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "file-type-checker": "^1.0.9",
     "firebase": "^10.7.1",
     "framer-motion": "^10.16.16",
     "immer": "^10.0.3",
-    "install": "^0.13.0",
     "lucide-react": "^0.268.0",
     "next": "14.2.2",
-    "npm": "^9.8.1",
-    "postcss": "8.4.28",
     "react": "18.2.0",
     "react-compare-slider": "^2.2.0",
     "react-dom": "18.2.0",
@@ -46,13 +40,17 @@
     "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "postcss": "8.4.28",
+    "@types/node": "20.5.0",
+    "@types/react": "18.2.20",
+    "@types/react-dom": "18.2.7",
+    "autoprefixer": "10.4.15",
     "eslint": "9.1.0",
     "eslint-config-next": "14.2.2",
     "@babel/compat-data": "^7.22.20",
     "@types/jest": "^29.5.5",
     "bun-types": "latest"
   },
-  "module": "index.ts",
   "peerDependencies": {
     "typescript": "^5.0.0"
   }
